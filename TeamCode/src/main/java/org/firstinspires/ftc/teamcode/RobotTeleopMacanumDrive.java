@@ -70,7 +70,11 @@ public class RobotTeleopMacanumDrive extends LinearOpMode {
                 degrees = -90;
             }
 
-            rx = drive.AutoTurn(degrees);
+            telemetry.addData("Commanded Degrees: ", degrees);
+            telemetry.addData("Current Degrees: ", drive.imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES));
+
+            rx = drive.AutoTurn(degrees, telemetry);
+            telemetry.update();
 
             // This button choice was made so that it is hard to hit on accident,
             // it can be freely changed based on preference.
