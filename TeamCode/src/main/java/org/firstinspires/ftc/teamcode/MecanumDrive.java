@@ -67,31 +67,32 @@ public final class MecanumDrive {
         public RevHubOrientationOnRobot.LogoFacingDirection logoFacingDirection =
                 RevHubOrientationOnRobot.LogoFacingDirection.UP;
         public RevHubOrientationOnRobot.UsbFacingDirection usbFacingDirection =
-                RevHubOrientationOnRobot.UsbFacingDirection.RIGHT;
+                RevHubOrientationOnRobot.UsbFacingDirection.BACKWARD;
 
-        // TODO: drive model parameters
+        // drive model parameters
         public double inPerTick = 0.0017475;
-        public double lateralInPerTick = 0.001053;
-        public double trackWidthTicks = 0.919672;
+        public double lateralInPerTick = 0.000875111;  //1053;
+        public double trackWidthTicks = 6285.131;
 
-        // TODO: feedforward parameters (in tick units)
-        public double kS = 2.0314;
-        public double kV = 0.0002067;
+        // feedforward parameters (in tick units)
+        public double kS = 1.205472; //2.0314;
+        public double kV = 0.0002524;  //2067;
         public double kA = 0.000027;
 
-        // TODO: path profile parameters (in inches)
+        // path profile parameters (in inches)
         public double maxWheelVel = 50;
         public double minProfileAccel = -30;
         public double maxProfileAccel = 50;
 
-        // TODO: turn profile parameters (in radians)
+        // turn profile parameters (in radians)
         public double maxAngVel = Math.PI; // shared with path
         public double maxAngAccel = Math.PI;
 
-        // TODO: path controller gains
-        public double axialGain = 0.0;
-        public double lateralGain = 0.0;
-        public double headingGain = 0.0; // shared with turn
+        // path controller gains
+        public double axialGain = 6.0;
+        public double lateralGain = 6.0;
+        public double headingGain = 3.0; // shared with turn
+
         public double axialVelGain = 0.0;
         public double lateralVelGain = 0.0;
         public double headingVelGain = 0.0; // shared with turn
@@ -232,10 +233,10 @@ public final class MecanumDrive {
 
         // TODO: make sure your config has motors with these names (or change them)
         //   see https://ftc-docs.firstinspires.org/en/latest/hardware_and_software_configuration/configuring/index.html
-        leftFront = hardwareMap.get(DcMotorEx.class, "FLMotor");
-        leftBack = hardwareMap.get(DcMotorEx.class, "BLMotor");
-        rightBack = hardwareMap.get(DcMotorEx.class, "BRMotor");
-        rightFront = hardwareMap.get(DcMotorEx.class, "FRMotor");
+        leftFront = hardwareMap.get(DcMotorEx.class, "leftFront");
+        leftBack = hardwareMap.get(DcMotorEx.class, "leftBack");
+        rightBack = hardwareMap.get(DcMotorEx.class, "rightBack");
+        rightFront = hardwareMap.get(DcMotorEx.class, "rightFront");
 
         leftFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         leftBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
