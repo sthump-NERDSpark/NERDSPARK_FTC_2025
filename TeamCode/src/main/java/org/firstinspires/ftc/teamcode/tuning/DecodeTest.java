@@ -3,12 +3,14 @@ package org.firstinspires.ftc.teamcode.tuning;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 import org.firstinspires.ftc.teamcode.TankDrive;
-
-public final class SplineTest extends LinearOpMode {
+//commit!
+@Autonomous
+public final class DecodeTest extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         Pose2d beginPose = new Pose2d(0, 0, 0);
@@ -19,10 +21,10 @@ public final class SplineTest extends LinearOpMode {
 
             Actions.runBlocking(
                 drive.actionBuilder(beginPose)
-                        .splineTo(new Vector2d(20, 20), Math.PI / 2)
-                        .splineTo(new Vector2d(0, 40), Math.PI)
-                        .splineTo(new Vector2d(-20, 60), Math.PI / 2)
-                        .splineTo(new Vector2d(0, 80), 0)
+                        .lineToXLinearHeading(5, Math.toRadians(-20))
+                        .splineToLinearHeading(new Pose2d(24, 14, Math.toRadians(90)), Math.toRadians(90))
+                        .splineTo(new Vector2d(24, 40), Math.toRadians(-90))
+                        .splineToLinearHeading(new Pose2d(76, -4, Math.toRadians(-50)), Math.toRadians(-50))
                         .build());
         } else if (TuningOpModes.DRIVE_CLASS.equals(TankDrive.class)) {
             TankDrive drive = new TankDrive(hardwareMap, beginPose);
