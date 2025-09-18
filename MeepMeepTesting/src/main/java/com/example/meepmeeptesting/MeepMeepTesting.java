@@ -26,7 +26,7 @@ public class MeepMeepTesting {
                 .turn(Math.toRadians(90))
                 .build());
 
-        meepMeep.setBackground(MeepMeep.Background.FIELD_DECODE_JUICE_DARK)
+        meepMeep.setBackground(MeepMeep.Background.FIELD_POWERPLAY_OFFICIAL)
                 .setDarkMode(true)
                 .setBackgroundAlpha(0.95f)
                 .addEntity(myBot)
