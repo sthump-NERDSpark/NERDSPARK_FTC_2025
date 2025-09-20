@@ -59,36 +59,34 @@ import java.util.List;
 @Config
 public final class MecanumDrive {
     public static class Params {
-
-
         // IMU orientation
         // TODO: fill in these values based on
         //   see https://ftc-docs.firstinspires.org/en/latest/programming_resources/imu/imu.html?highlight=imu#physical-hub-mounting
         public RevHubOrientationOnRobot.LogoFacingDirection logoFacingDirection =
                 RevHubOrientationOnRobot.LogoFacingDirection.UP;
         public RevHubOrientationOnRobot.UsbFacingDirection usbFacingDirection =
-                RevHubOrientationOnRobot.UsbFacingDirection.BACKWARD;
+                RevHubOrientationOnRobot.UsbFacingDirection.RIGHT;
 
-        // drive model parameters
+        // TODO: drive model parameters
         public double inPerTick = 0.0017475;
         public double lateralInPerTick = 0.000875111;  //1053;
         public double trackWidthTicks = 6285.131;
 
-        // feedforward parameters (in tick units)
+        // TODO: feedforward parameters (in tick units)
         public double kS = 1.205472; //2.0314;
         public double kV = 0.0002524;  //2067;
         public double kA = 0.000027;
 
-        // path profile parameters (in inches)
+        // TODO: path profile parameters (in inches)
         public double maxWheelVel = 50;
         public double minProfileAccel = -30;
         public double maxProfileAccel = 50;
 
-        // turn profile parameters (in radians)
+        // TODO: turn profile parameters (in radians)
         public double maxAngVel = Math.PI; // shared with path
         public double maxAngAccel = Math.PI;
 
-        // path controller gains
+        // TODO: path controller gains
         public double axialGain = 6.0;
         public double lateralGain = 6.0;
         public double headingGain = 3.0; // shared with turn
@@ -253,8 +251,7 @@ public final class MecanumDrive {
         //   see https://ftc-docs.firstinspires.org/en/latest/hardware_and_software_configuration/configuring/index.html
         imu = hardwareMap.get(IMU.class, "imu");
         IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
-                RevHubOrientationOnRobot.LogoFacingDirection.UP,
-                RevHubOrientationOnRobot.UsbFacingDirection.RIGHT)
+                PARAMS.logoFacingDirection, PARAMS.usbFacingDirection)
         );
         // Without this, the REV Hub's orientation is assumed to be logo up / USB forward
         imu.initialize(parameters);
@@ -474,7 +471,7 @@ public final class MecanumDrive {
                 defaultTurnConstraints.maxAngAccel,
                 defaultTurnConstraints.maxAngVel,
                 Math.abs(yaw - degrees),
-                3
+                5
         );
         telemetry.addData("Motion Profile Output: ", instantTargetPosition);
         double power = PID.calculate(instantTargetPosition, yaw);

@@ -7,8 +7,6 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.MecanumDrive;
-import org.firstinspires.ftc.teamcode.TankDrive;
-//commit!
 @Autonomous
 public final class DecodeTest extends LinearOpMode {
     @Override
@@ -26,16 +24,6 @@ public final class DecodeTest extends LinearOpMode {
                         .splineTo(new Vector2d(24, 40), Math.toRadians(-90))
                         .splineToLinearHeading(new Pose2d(76, -4, Math.toRadians(-50)), Math.toRadians(-50))
                         .build());
-        } else if (TuningOpModes.DRIVE_CLASS.equals(TankDrive.class)) {
-            TankDrive drive = new TankDrive(hardwareMap, beginPose);
-
-            waitForStart();
-
-            Actions.runBlocking(
-                    drive.actionBuilder(beginPose)
-                            .splineTo(new Vector2d(30, 30), Math.PI / 2)
-                            .splineTo(new Vector2d(0, 60), Math.PI)
-                            .build());
         } else {
             throw new RuntimeException();
         }
