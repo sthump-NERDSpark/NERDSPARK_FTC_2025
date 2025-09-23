@@ -466,12 +466,12 @@ public final class MecanumDrive {
 
     public double AutoTurn(double degrees, Telemetry telemetry) {
         double yaw = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
-        PID PID = new PID(0.1,0,0);
+        PID PID = new PID(0.058,0,0);
         double instantTargetPosition = PID.motion_profile(
                 defaultTurnConstraints.maxAngAccel,
                 defaultTurnConstraints.maxAngVel,
                 Math.abs(yaw - degrees),
-                5
+                10
         );
         telemetry.addData("Motion Profile Output: ", instantTargetPosition);
         double power = PID.calculate(instantTargetPosition, yaw);
