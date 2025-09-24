@@ -49,10 +49,6 @@ public final class PinpointLocalizer implements Localizer {
         txWorldPinpoint = initialPose;
     }
 
-    public double getBotHeading() {
-        return driver.getYawScalar();
-    }
-
     @Override
     public void setPose(Pose2d pose) {
         txWorldPinpoint = pose.times(txPinpointRobot.inverse());

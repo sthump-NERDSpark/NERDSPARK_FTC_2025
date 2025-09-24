@@ -8,7 +8,6 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.Util.AutoTurnController;
-import org.firstinspires.ftc.teamcode.localizer.PinpointLocalizer;
 
 @TeleOp(name = "Main Teleop for Mecanum Drive", group = "Robot")
 public class RobotTeleopMacanumDrive extends LinearOpMode {
@@ -20,8 +19,7 @@ public class RobotTeleopMacanumDrive extends LinearOpMode {
 
 
         MecanumDrive drive = new MecanumDrive(hardwareMap, new Pose2d(0,0,0));
-        PinpointLocalizer localizer = new PinpointLocalizer(hardwareMap, PARAMS.inPerTick, new Pose2d(0,0,0));
-//        double degree = drive.imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
+       //        double degree = drive.imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
 
         AutoTurnController turnController = new AutoTurnController(0.06, 0, 0,
                 drive.defaultTurnConstraints.maxAngVel, drive.defaultTurnConstraints.maxAngAccel);
@@ -31,10 +29,12 @@ public class RobotTeleopMacanumDrive extends LinearOpMode {
         if (isStopRequested()) return;
 
         while (opModeIsActive()) {
+
             double y = -gamepad1.right_stick_y; // Remember, Y stick value is reversed
             double x = gamepad1.right_stick_x;
             //double botHeading = drive.imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
-            double botHeading = localizer.driver.getYawScalar();
+            drive.updatePoseEstimate();
+            double botHeading = drive.localizer.getPose().heading.toDouble();
             //double rx = gamepad1.left_stick_x;
 
             // First attempt at incorporating manual turning with auto turn
