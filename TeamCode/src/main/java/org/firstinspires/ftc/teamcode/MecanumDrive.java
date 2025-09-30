@@ -464,25 +464,6 @@ public final class MecanumDrive {
         }
     }
 
-    public double AutoTurn(double degrees, Telemetry telemetry) {
-        double yaw = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
-        PID PID = new PID(0.058,0,0);
-        double instantTargetPosition = PID.motion_profile(
-                defaultTurnConstraints.maxAngAccel,
-                defaultTurnConstraints.maxAngVel,
-                Math.abs(yaw - degrees),
-                10
-        );
-        telemetry.addData("Motion Profile Output: ", instantTargetPosition);
-        double power = PID.calculate(instantTargetPosition, yaw);
-        telemetry.addData("PID Output: ", power);
-        // scale to -1 to 1
-        double maxVal = Math.max(Math.abs(power), 1.0);
-        double scaledPower = power / maxVal;
-        telemetry.addData("Scaled Power: ", scaledPower);
-        return scaledPower;
-    }
-
     public PoseVelocity2d updatePoseEstimate() {
         PoseVelocity2d vel = localizer.update();
         poseHistory.add(localizer.getPose());

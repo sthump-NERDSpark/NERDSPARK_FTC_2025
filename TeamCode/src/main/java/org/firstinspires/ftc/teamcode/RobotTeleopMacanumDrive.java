@@ -7,7 +7,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.teamcode.Util.AutoTurnController;
+import org.firstinspires.ftc.teamcode.Util.PID;
 
 @TeleOp(name = "Main Teleop for Mecanum Drive", group = "Robot")
 public class RobotTeleopMacanumDrive extends LinearOpMode {
@@ -15,10 +15,9 @@ public class RobotTeleopMacanumDrive extends LinearOpMode {
     public void runOpMode() {
         // Change new Pose2d to match where you start out of auto
         MecanumDrive drive = new MecanumDrive(hardwareMap, new Pose2d(0,0,0));
-//        double degree = drive.imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
-
-        AutoTurnController turnController = new AutoTurnController(0.06, 0, 0,
-                drive.defaultTurnConstraints.maxAngVel, drive.defaultTurnConstraints.maxAngAccel);
+        double commandDegrees = drive.imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
+        PID turnController = new PID(0, 0, 0);
+        double rx;
 
         waitForStart();
 
@@ -31,41 +30,24 @@ public class RobotTeleopMacanumDrive extends LinearOpMode {
 
             // First attempt at incorporating manual turning with auto turn
             if (gamepad1.left_stick_x > 0.05) {
-                turnController.setTargetAngle(turnController.getTargetAngle() + Math.toRadians(5));
+                commandDegrees += 0.5;
             }
 
             // First tested attempt at auto turn. Runs all the time and constantly corrects gyro position
-//            if(gamepad1.dpad_down) {
-//                degrees = 180;
-//            } else if (gamepad1.dpad_up) {
-//                degrees = 0;
-//            } else if (gamepad1.dpad_left) {
-//                degrees = 90;
-//            } else if (gamepad1.dpad_right) {
-//                degrees = -90;
-//            }
-//
-//            telemetry.addData("Commanded Degrees: ", degrees);
-//            telemetry.addData("Current Degrees: ", drive.imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES));
-//
-//            rx = drive.AutoTurn(degrees, telemetry);
-//            telemetry.update();
-
-            // Second attempt at auto turn. Runs all the time and constantly corrects gyro position
             if(gamepad1.dpad_down) {
-                turnController.setTargetAngle(Math.toRadians(180));
+                commandDegrees = 180;
             } else if (gamepad1.dpad_up) {
-                turnController.setTargetAngle(Math.toRadians(0));
+                commandDegrees = 0;
             } else if (gamepad1.dpad_left) {
-                turnController.setTargetAngle(Math.toRadians(90));
+                commandDegrees = 90;
             } else if (gamepad1.dpad_right) {
-                turnController.setTargetAngle(Math.toRadians(270));
+                commandDegrees = -90;
             }
 
-            double rx = turnController.calculate(drive.imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS));
-
-            telemetry.addData("Commanded Degrees: ", Math.toDegrees(turnController.getTargetAngle()));
+            telemetry.addData("Commanded Degrees: ", commandDegrees);
             telemetry.addData("Current Degrees: ", drive.imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES));
+
+            rx = turnController.calculate(drive.imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES), commandDegrees);
             telemetry.update();
 
             // This button choice was made so that it is hard to hit on accident,
