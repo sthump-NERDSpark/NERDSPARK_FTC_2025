@@ -16,7 +16,7 @@ public class RobotTeleopMacanumDrive extends LinearOpMode {
         // Change new Pose2d to match where you start out of auto
         MecanumDrive drive = new MecanumDrive(hardwareMap, new Pose2d(0,0,0));
         double commandDegrees = drive.imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
-        PID turnController = new PID(0, 0, 0);
+        PID turnController = new PID(0.1, 0, 0);
         double rx;
 
         waitForStart();
@@ -33,7 +33,6 @@ public class RobotTeleopMacanumDrive extends LinearOpMode {
                 commandDegrees += 0.5;
             }
 
-            // First tested attempt at auto turn. Runs all the time and constantly corrects gyro position
             if(gamepad1.dpad_down) {
                 commandDegrees = 180;
             } else if (gamepad1.dpad_up) {
@@ -47,7 +46,13 @@ public class RobotTeleopMacanumDrive extends LinearOpMode {
             telemetry.addData("Commanded Degrees: ", commandDegrees);
             telemetry.addData("Current Degrees: ", drive.imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES));
 
-            rx = turnController.calculate(drive.imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES), commandDegrees);
+            // First tested attempt at auto turn. Runs all the time and constantly corrects gyro position
+//            rx = turnController.calculate(drive.imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES), commandDegrees);
+//            telemetry.update();
+
+            // Second try at auto turn with a trapezoidal motion profile
+            rx = drive.autoTurn(commandDegrees, drive.imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES),
+                    turnController, telemetry);
             telemetry.update();
 
             // This button choice was made so that it is hard to hit on accident,

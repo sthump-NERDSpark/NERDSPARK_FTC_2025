@@ -66,7 +66,10 @@ public class PID {
             // reset the timer for next time
             timer.reset();
 
-            return ((m_Kp * error) + (m_Ki * integralSum) + (m_Kd * derivative));
+            double power = (m_Kp * error) + (m_Ki * integralSum) + (m_Kd * derivative);
+            double maxVal = Math.max(Math.abs(power), 1.0);
+
+            return power / maxVal;
         }
 
         return 0;

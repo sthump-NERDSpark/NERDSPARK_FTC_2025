@@ -41,9 +41,12 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
+import com.qualcomm.robotcore.util.ElapsedTime;
+
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import org.firstinspires.ftc.teamcode.Util.Drawing;
+import org.firstinspires.ftc.teamcode.Util.TrapezoidalProfile;
 import org.firstinspires.ftc.teamcode.localizer.Localizer;
 import org.firstinspires.ftc.teamcode.localizer.PinpointLocalizer;
 import org.firstinspires.ftc.teamcode.messages.DriveCommandMessage;
@@ -58,6 +61,9 @@ import java.util.List;
 
 @Config
 public final class MecanumDrive {
+
+    ElapsedTime timer = new ElapsedTime();
+    double lastTime = timer.seconds();
     public static class Params {
         // IMU orientation
         // TODO: fill in these values based on
@@ -462,6 +468,37 @@ public final class MecanumDrive {
             c.setStroke("#7C4DFF7A");
             c.fillCircle(turn.beginPose.position.x, turn.beginPose.position.y, 2);
         }
+    }
+
+    public double autoTurn(double commandDegrees, double degrees, PID pidController, Telemetry telemetry) {
+        TrapezoidalProfile profile = new TrapezoidalProfile(commandDegrees, PARAMS.maxAngVel, PARAMS.maxAngAccel);
+        TrapezoidalProfile.State setpoint = profile.calculate(getDT());
+
+        double pidOutput = pidController.calculate(setpoint.position, degrees);
+
+        // Feedforward
+        double ff = (PARAMS.kS * Math.signum(setpoint.velocity)
+                + PARAMS.kV * setpoint.velocity
+                + PARAMS.kA * setpoint.acceleration) / 12;
+
+        double output = pidOutput + ff;
+        double scaledOutput = Math.max(-1.0, Math.min(1.0, output));
+
+        telemetry.addData("Setpoint Pos", setpoint.position);
+        telemetry.addData("Setpoint Vel", setpoint.velocity);
+        telemetry.addData("Setpoint Acc", setpoint.acceleration);
+        telemetry.addData("PID Output", pidOutput);
+        telemetry.addData("Scaled Output", scaledOutput);
+
+        return scaledOutput;
+    }
+
+    private double getDT() {
+        double now = timer.seconds();
+        double dt = now - lastTime;
+        lastTime = now;
+
+        return dt;
     }
 
     public PoseVelocity2d updatePoseEstimate() {
