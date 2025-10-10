@@ -28,8 +28,19 @@ public class PID {
         boolean setPointIsNotReached = !(Math.abs(position - reference) < 1);
 
         if (setPointIsNotReached) {
+            double error;
+            if (Math.abs(position - reference) < 180) {
+                error = position - reference;
+            } else {
+                if (position - reference < 0) {
+                    error = position - (reference - 360);
+                } else {
+                    error = position - (reference + 360);
+                }
+            }
+
             // calculate the error
-            double error = reference - position;
+            //double error = reference - position;
 
             double errorChange = (error - lastError);
 

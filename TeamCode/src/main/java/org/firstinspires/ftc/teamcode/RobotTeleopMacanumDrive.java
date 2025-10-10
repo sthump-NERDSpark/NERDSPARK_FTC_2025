@@ -15,9 +15,8 @@ public class RobotTeleopMacanumDrive extends LinearOpMode {
     public void runOpMode() {
         // Change new Pose2d to match where you start out of auto
         MecanumDrive drive = new MecanumDrive(hardwareMap, new Pose2d(0,0,0));
-        double commandDegrees = drive.imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
-        PID turnController = new PID(0.1, 0, 0);
-        double rx;
+        double commandDegrees = 0;
+        PID turnController = new PID(0.05, 0, 0.0000001);
 
         waitForStart();
 
@@ -25,16 +24,21 @@ public class RobotTeleopMacanumDrive extends LinearOpMode {
 
         while (opModeIsActive()) {
             double y = -gamepad1.right_stick_y; // Remember, Y stick value is reversed
-            double x = gamepad1.right_stick_x;
+            double x = -gamepad1.right_stick_x;
             //double rx = gamepad1.left_stick_x;
 
-            // First attempt at incorporating manual turning with auto turn
-            if (gamepad1.left_stick_x > 0.05) {
+            if (gamepad1.left_stick_x > 0.15) {
+                commandDegrees -= 0.5;
+            } else if (gamepad1.left_stick_x < -0.15) {
                 commandDegrees += 0.5;
             }
 
             if(gamepad1.dpad_down) {
-                commandDegrees = 180;
+                if (Math.toDegrees(drive.localizer.getPose().heading.toDouble()) < 0) {
+                    commandDegrees = -180;
+                } else {
+                    commandDegrees = 180;
+                }
             } else if (gamepad1.dpad_up) {
                 commandDegrees = 0;
             } else if (gamepad1.dpad_left) {
@@ -44,15 +48,10 @@ public class RobotTeleopMacanumDrive extends LinearOpMode {
             }
 
             telemetry.addData("Commanded Degrees: ", commandDegrees);
-            telemetry.addData("Current Degrees: ", drive.imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES));
+            telemetry.addData("Current Degrees: ", Math.toDegrees(drive.localizer.getPose().heading.toDouble()));
 
-            // First tested attempt at auto turn. Runs all the time and constantly corrects gyro position
-//            rx = turnController.calculate(drive.imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES), commandDegrees);
-//            telemetry.update();
-
-            // Second try at auto turn with a trapezoidal motion profile
-            rx = drive.autoTurn(commandDegrees, drive.imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES),
-                    turnController, telemetry);
+            double rx = turnController.calculate(Math.toDegrees(drive.localizer.getPose().heading.toDouble()), commandDegrees);
+            telemetry.addData("Motor Command: ", rx);
             telemetry.update();
 
             // This button choice was made so that it is hard to hit on accident,
@@ -62,11 +61,12 @@ public class RobotTeleopMacanumDrive extends LinearOpMode {
                 drive.imu.resetYaw();
             }
 
-            double botHeading = drive.imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
+            drive.updatePoseEstimate();
+            double botHeading = drive.localizer.getPose().heading.toDouble();
 
             // Rotate the movement direction counter to the bot's rotation
-            double rotX = x * Math.cos(-botHeading) - y * Math.sin(-botHeading);
-            double rotY = x * Math.sin(-botHeading) + y * Math.cos(-botHeading);
+            double rotX = x * Math.cos(-botHeading) - y * Math.sin(botHeading);
+            double rotY = x * Math.sin(botHeading) + y * Math.cos(-botHeading);
 
             rotX = rotX * 1.1;  // Counteract imperfect strafing
 

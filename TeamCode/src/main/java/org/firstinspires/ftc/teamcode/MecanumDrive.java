@@ -46,7 +46,6 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import org.firstinspires.ftc.teamcode.Util.Drawing;
-import org.firstinspires.ftc.teamcode.Util.TrapezoidalProfile;
 import org.firstinspires.ftc.teamcode.localizer.Localizer;
 import org.firstinspires.ftc.teamcode.localizer.PinpointLocalizer;
 import org.firstinspires.ftc.teamcode.messages.DriveCommandMessage;
@@ -468,29 +467,6 @@ public final class MecanumDrive {
             c.setStroke("#7C4DFF7A");
             c.fillCircle(turn.beginPose.position.x, turn.beginPose.position.y, 2);
         }
-    }
-
-    public double autoTurn(double commandDegrees, double degrees, PID pidController, Telemetry telemetry) {
-        TrapezoidalProfile profile = new TrapezoidalProfile(commandDegrees, PARAMS.maxAngVel, PARAMS.maxAngAccel);
-        TrapezoidalProfile.State setpoint = profile.calculate(getDT());
-
-        double pidOutput = pidController.calculate(setpoint.position, degrees);
-
-        // Feedforward
-        double ff = (PARAMS.kS * Math.signum(setpoint.velocity)
-                + PARAMS.kV * setpoint.velocity
-                + PARAMS.kA * setpoint.acceleration) / 12;
-
-        double output = pidOutput + ff;
-        double scaledOutput = Math.max(-1.0, Math.min(1.0, output));
-
-        telemetry.addData("Setpoint Pos", setpoint.position);
-        telemetry.addData("Setpoint Vel", setpoint.velocity);
-        telemetry.addData("Setpoint Acc", setpoint.acceleration);
-        telemetry.addData("PID Output", pidOutput);
-        telemetry.addData("Scaled Output", scaledOutput);
-
-        return scaledOutput;
     }
 
     private double getDT() {
