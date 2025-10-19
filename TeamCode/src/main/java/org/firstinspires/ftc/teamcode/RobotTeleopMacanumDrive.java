@@ -1,8 +1,10 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.PoseVelocity2d;
 import com.acmerobotics.roadrunner.Vector2d;
+import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -17,6 +19,7 @@ public class RobotTeleopMacanumDrive extends LinearOpMode {
         MecanumDrive drive = new MecanumDrive(hardwareMap, new Pose2d(0,0,0));
         double commandDegrees = 0;
         PID turnController = new PID(0.05, 0, 0.0000001);
+        Shooter shooter = new Shooter(hardwareMap);
 
         waitForStart();
 
@@ -60,6 +63,17 @@ public class RobotTeleopMacanumDrive extends LinearOpMode {
             if (gamepad1.options) {
                 drive.imu.resetYaw();
             }
+
+            if (gamepad1.a) {
+                Actions.runBlocking(shooter.spinUpWheels());
+            }
+            if (gamepad1.x) {
+                Actions.runBlocking(shooter.shoot());
+            }
+            if (gamepad1.b) {
+                Actions.runBlocking(shooter.intake());
+            }
+            telemetry.update();
 
             drive.updatePoseEstimate();
             double botHeading = drive.localizer.getPose().heading.toDouble();
