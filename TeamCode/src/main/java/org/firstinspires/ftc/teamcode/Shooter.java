@@ -6,31 +6,69 @@ import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.SequentialAction;
-import com.qualcomm.robotcore.hardware.ColorSensor;
+import com.acmerobotics.roadrunner.TimeTurn;
+import com.acmerobotics.roadrunner.TurnConstraints;
+import com.acmerobotics.roadrunner.Vector2d;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 
-/*
- * Remember to STOP_AND_RESET the pivot encoders in auto init but not in teleop due to the possibility
- * that the starting position may not be exact
- */
+import org.firstinspires.ftc.robotcore.external.JavaUtil;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+
 public class Shooter {
-    private DcMotorEx shootTop;
-    private DcMotorEx shootBottom;
-    public DcMotorEx pivotLeft;
-    public DcMotorEx pivotRight;
+    private final DcMotorEx shootTop;
+    private final DcMotorEx shootBottom;
+    public final DcMotorEx pivotLeft;
+    public final DcMotorEx pivotRight;
 
-    private Servo kickLeft;
-    private Servo kickCenter;
-    private Servo kickRight;
+    private final Servo kickLeft;
+    private final Servo kickCenter;
+    private final Servo kickRight;
 
-    private ColorSensor sensorLeft;
-    private ColorSensor sensorCenter;
-    private ColorSensor sensorRight;
+    private final NormalizedColorSensor sensorLeft;
+    private final NormalizedColorSensor sensorCenter;
+    private final NormalizedColorSensor sensorRight;
 
+    // FOR SHOOTING
+    private double shooterVelocity;
+
+    // FOR CHOOSING BALL ORDER
+    public enum shootOrder {
+        LEFT,
+        CENTER_LEFT,
+        CENTER_LAST,
+        CENTER_RIGHT,
+        RIGHT
+    }
+    public enum greenShot {
+        FIRST,
+        SECOND,
+        THIRD
+    }
+
+    // FOR FINDING BEST SHOT
+    // Gravity constant (m/s^2)
+    //private static final double G_m = 9.81;
+    // Gravity constant (ft/s^2)
+    private static final double G_ft = 32.174;
+
+    private static class Result {
+        public int angleDeg;
+        public double speed;
+        public double error;
+    }
+
+    private static final Vector2d blueGoalPose = new Vector2d(0,0);
+    private static final Vector2d redGoalPose = new Vector2d(0,0);
+
+    /**
+     * Remember to STOP_AND_RESET the pivot encoders in auto init but not in teleop due to the possibility
+     * that the starting position may not be exact
+     */
     public Shooter(HardwareMap hardwareMap) {
         shootTop = hardwareMap.get(DcMotorEx.class, "shootTop");
         shootBottom = hardwareMap.get(DcMotorEx.class, "shootTop");
@@ -50,51 +88,248 @@ public class Shooter {
 
         shootTop.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         shootBottom.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        pivotLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        pivotRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+        pivotLeft.setTargetPositionTolerance(1);
+        pivotRight.setTargetPositionTolerance(1);
 
         kickLeft = hardwareMap.get(Servo.class, "leftKick");
         kickCenter = hardwareMap.get(Servo.class, "centerKick");
         kickRight = hardwareMap.get(Servo.class, "rightKick");
 
-        sensorLeft = hardwareMap.get(ColorSensor.class, "leftColor");
-        sensorCenter = hardwareMap.get(ColorSensor.class, "centerColor");
-        sensorRight = hardwareMap.get(ColorSensor.class, "rightColor");
+        sensorLeft = hardwareMap.get(NormalizedColorSensor.class, "leftColor");
+        sensorCenter = hardwareMap.get(NormalizedColorSensor.class, "centerColor");
+        sensorRight = hardwareMap.get(NormalizedColorSensor.class, "rightColor");
     }
 
+    /**
+     * MAKE SURE ALL UNITS ARE IN FT, FT/S^2
+     * Currently runs on robot pose and goal pose but can be changed to use limelight distance plus some
+     */
+    // TODO: Test this
+    private static Result findBestShot(
+            double xStart, double yStart,
+            double xEnd, double yEnd, // Can replace these with limelight distance to tag plus some
+            // double ll_dx, double ll_dy
+            double maxAngle, double angleHorizontal,
+            double minSpeed, double maxSpeed,
+            int angleStep, double speedStep) {
+
+        double dx = xEnd - xStart; // Can replace with limelight distance to tag plus some
+        // double dx = ll_dx + 5; // Need to find offset
+        double dy = yEnd - yStart; // Can replace with limelight distance to tag plus some
+        // double dy = ll_dy + 5 // Need to find offset
+
+        double bestError = Double.MAX_VALUE;
+        Result best = new Result();
+
+        for (int angle = 0; angle <= maxAngle; angle += angleStep) {
+            // Convert to radians relative to horizontal
+            double theta = Math.toRadians(angle - angleHorizontal);
+
+            for (double v = minSpeed; v <= maxSpeed; v += speedStep) {
+                double yPred = dx * Math.tan(theta)
+                        - (G_ft * dx * dx) / (2 * v * v * Math.cos(theta) * Math.cos(theta));
+
+                double error = Math.abs(yPred - dy);
+
+                if (error < bestError) {
+                    bestError = error;
+                    best.angleDeg = angle;
+                    best.speed = v;
+                    best.error = error;
+                }
+            }
+        }
+
+        return best;
+    }
+
+   // TODO: Test this
     public class AimAndSpinUp implements Action {
+        private final Pose2d currPose;
+        // private final double ll_dx
+        // private final double ll_dy
+        private final boolean alliance_blue;
+
+        public AimAndSpinUp(Pose2d pose, boolean alliance) { // double lldx, double lldy
+            // this.ll_dx = lldx
+            // this.ll_dy = lldy
+            this.currPose = pose;
+            this.alliance_blue = alliance;
+        }
+
         @Override
         public boolean run(@NonNull TelemetryPacket packet) {
+            // TODO: Adjust values
+            Result r = findBestShot(currPose.position.x + 0, currPose.position.y + 0,
+                    alliance_blue? blueGoalPose.x : redGoalPose.x, alliance_blue? blueGoalPose.y : redGoalPose.y,
+                    // ll_dx, ll_dy,
+                    90, 43, 10, 200,
+                    5, 5);
 
-            return false;
+            shooterVelocity = r.speed;
+
+            pivotLeft.setTargetPosition(r.angleDeg);
+            pivotRight.setTargetPosition(r.angleDeg);
+
+            shootTop.setVelocity(r.speed, AngleUnit.DEGREES);
+            shootBottom.setVelocity(r.speed, AngleUnit.DEGREES);
+
+            packet.put("Height error: ", r.error);
+
+            return true;
         }
     }
 
     /**
-     *This action aims the shooter and spins up the motors
+     * This action aims the shooter and spins up the motors
+     * Uses odo position
+     * Can be changed to use limelight distance to tag
      */
-    public Action aimAndSpinUp() {
-        return new AimAndSpinUp();
+    // TODO: Test this
+    public Action aimAndSpinUp(Pose2d pose, boolean alliance_blue) { // @NonNull LimelightManager ll,
+        // Vector2d vect = ll.getDistance();
+
+        return new AimAndSpinUp(pose, alliance_blue); // vect.x, vect.y
     }
 
+    // TODO: Test this
     public class Shoot implements Action {
+        private final shootOrder Order;
+        private static final long TIMEOUT_MS = 5000;
+
+        public Shoot(shootOrder order) {
+            this.Order = order;
+        }
+
+        // Build the servo order dynamically based on order
+        private Servo[] getServoOrder(shootOrder order) {
+            switch (order) {
+                case LEFT: return new Servo[]{kickLeft, kickCenter, kickRight};
+                case CENTER_LEFT: return new Servo[]{kickCenter, kickLeft, kickRight};
+                case CENTER_LAST: return new Servo[]{kickLeft, kickRight, kickCenter};
+                case CENTER_RIGHT: return new Servo[]{kickCenter, kickRight, kickLeft};
+                case RIGHT: return new Servo[]{kickRight, kickLeft, kickCenter};
+            }
+            return new Servo[]{kickLeft, kickCenter, kickRight};
+        }
+
+        private boolean waitUntilVelocityReached(double target) {
+            long start = System.nanoTime();
+            long timeoutNs = TIMEOUT_MS * 1_000_000L;
+
+            while (true) {
+                if (motorsAtVelocity(target)) return true;
+                if (System.nanoTime() - start > timeoutNs) return false;
+
+                try {
+                    Thread.sleep(20);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    return false;
+                }
+            }
+        }
+
+        private boolean motorsAtVelocity(double target) {
+            double VELOCITY_TOLERANCE = 0.5;
+
+            double left = shootTop.getVelocity();
+            double right = shootBottom.getVelocity();
+            return Math.abs(left - target) < VELOCITY_TOLERANCE &&
+                    Math.abs(right - target) < VELOCITY_TOLERANCE;
+        }
+
         @Override
         public boolean run(@NonNull TelemetryPacket packet) {
+            Servo[] sequence = getServoOrder(this.Order);
+            packet.put("Servo order:", sequence);
 
-            return false;
+            for (Servo servo : sequence) {
+                // Wait until motors are at target velocity
+                if (!waitUntilVelocityReached(shooterVelocity)) {
+                    packet.put("Timeout waiting for motors before moving servo.", false);
+                    return false;
+                }
+
+                // Move the current servo
+                servo.setPosition(1);
+                packet.put("Moved servo to position " + 1, true);
+                servo.setPosition(0);
+            }
+
+            return true; // completed all 3 moves
         }
     }
 
     /**
-     *This action shoots the balls in a specified order
+     * This action shoots the balls in a specified order
+     * Has code for limelight
      */
-    public Action shoot() {
-        return new Shoot();
+    // TODO: Test this
+    public Action shoot() { // @NonNull LimelightManager ll, boolean alliance_blue
+        greenShot first = greenShot.FIRST; // ll.getOrder(alliance_blue);
+        double[] hues = {
+                JavaUtil.colorToHue(sensorLeft.getNormalizedColors().toColor()),
+                JavaUtil.colorToHue(sensorCenter.getNormalizedColors().toColor()),
+                JavaUtil.colorToHue(sensorRight.getNormalizedColors().toColor())
+        };
+        for (int i = 0; i < hues.length; i++) {
+            if (hues[i] >= 79f && hues[i] <= 139f) {
+                switch (i) {
+                    // Green ball is in left
+                    case 0:
+                        switch (first) {
+                            case FIRST:
+                                return new Shoot(shootOrder.LEFT);
+                            case SECOND:
+                                return new Shoot(shootOrder.CENTER_LEFT);
+                            case THIRD:
+                                return new Shoot(shootOrder.RIGHT);
+                        }
+                    // Green ball is in center
+                    case 1:
+                        switch (first) {
+                            case FIRST:
+                                return new Shoot(shootOrder.CENTER_LEFT);
+                            case SECOND:
+                                return new Shoot(shootOrder.LEFT);
+                            case THIRD:
+                                return new Shoot(shootOrder.CENTER_LAST);
+                        }
+                    // Green ball is in right
+                    case 2:
+                        switch (first) {
+                            case FIRST:
+                                return new Shoot(shootOrder.RIGHT);
+                            case SECOND:
+                                return new Shoot(shootOrder.CENTER_RIGHT);
+                            case THIRD:
+                                return new Shoot(shootOrder.LEFT);
+                        }
+                }
+            }
+        }
+        return new Shoot(shootOrder.LEFT);
     }
 
     /**
-     *This action aligns the robot to the goal, aims the shooter, and spins up the motors
+     * This action aligns the robot to the goal, aims the shooter, and spins up the motors
+     * Can take currPose from limelight or odo
+     * Can be changed to use limelight distance to tag
      */
-    public Action alignAndAim(Pose2d currPose) {
-        double heading = Math.atan2(0,0) * (180/Math.PI);
-        return new SequentialAction();
+    // TODO: Test this
+    public Action alignAndAim(Pose2d currPose, TurnConstraints constraints, MecanumDrive
+            drive, boolean alliance_blue) {
+        //Target X - actual X, target Y - actual Y
+        double heading = Math.atan2((alliance_blue? blueGoalPose.x : redGoalPose.x) - currPose.position.x,
+                (alliance_blue? blueGoalPose.y : redGoalPose.y) - currPose.position.y);
+        // Vector2d vect = ll.getDistance();
+        return new SequentialAction(
+                drive.new TurnAction(new TimeTurn(currPose, heading, constraints)),
+                aimAndSpinUp(currPose, alliance_blue) // vect.x, vect.y
+        );
     }
 }

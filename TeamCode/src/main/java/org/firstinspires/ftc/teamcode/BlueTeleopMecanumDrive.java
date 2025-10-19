@@ -3,20 +3,21 @@ package org.firstinspires.ftc.teamcode;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.PoseVelocity2d;
 import com.acmerobotics.roadrunner.Vector2d;
+import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.Util.PID;
 
-@TeleOp(name = "Main Teleop for Mecanum Drive", group = "Robot")
-public class RobotTeleopMacanumDrive extends LinearOpMode {
+@TeleOp(name = "Blue Teleop for Mecanum Drive", group = "Robot")
+public class BlueTeleopMecanumDrive extends LinearOpMode {
     @Override
     public void runOpMode() {
         // Change new Pose2d to match where you start out of auto
         MecanumDrive drive = new MecanumDrive(hardwareMap, new Pose2d(0,0,0));
         double commandDegrees = 0;
         PID turnController = new PID(0.05, 0, 0.0000001);
+        Shooter shooter = new Shooter(hardwareMap);
 
         waitForStart();
 
@@ -59,6 +60,19 @@ public class RobotTeleopMacanumDrive extends LinearOpMode {
             // The equivalent button is start on Xbox-style controllers.
             if (gamepad1.options) {
                 drive.imu.resetYaw();
+            }
+
+            drive.localizer.update();
+
+            if (gamepad1.b) {
+                Actions.runBlocking(shooter.aimAndSpinUp(drive.localizer.getPose(), true));
+            }
+            if (gamepad1.x) {
+                Actions.runBlocking(shooter.shoot());
+            }
+            if (gamepad1.a) {
+                Actions.runBlocking(shooter.alignAndAim(drive.localizer.getPose(), drive.defaultTurnConstraints,
+                        drive, true));
             }
 
             drive.updatePoseEstimate();
