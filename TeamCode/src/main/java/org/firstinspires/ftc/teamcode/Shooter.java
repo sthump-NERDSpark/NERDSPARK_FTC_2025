@@ -40,6 +40,7 @@ public class Shooter {
     public class SpinUpWheels implements Action {
         @Override
         public boolean run(@NonNull TelemetryPacket packet) {
+            //TODO: Add velocity following
             shootLeft.setPower(0.5);
             shootRight.setPower(0.5);
 
