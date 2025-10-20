@@ -6,6 +6,7 @@ import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
 
 import org.firstinspires.ftc.teamcode.Util.PID;
 
@@ -18,6 +19,8 @@ public class BlueTeleopMecanumDrive extends LinearOpMode {
         double commandDegrees = 0;
         PID turnController = new PID(0.05, 0, 0.0000001);
         Shooter shooter = new Shooter(hardwareMap);
+        shooter.pivotLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        shooter.pivotRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         waitForStart();
 
@@ -47,6 +50,8 @@ public class BlueTeleopMecanumDrive extends LinearOpMode {
             } else if (gamepad1.dpad_right) {
                 commandDegrees = -90;
             }
+
+            telemetry.addData("Shooter Degrees: ", shooter.pivotLeft.getCurrentPosition());
 
             telemetry.addData("Commanded Degrees: ", commandDegrees);
             telemetry.addData("Current Degrees: ", Math.toDegrees(drive.localizer.getPose().heading.toDouble()));

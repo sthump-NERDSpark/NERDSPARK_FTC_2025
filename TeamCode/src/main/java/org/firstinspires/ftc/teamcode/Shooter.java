@@ -50,6 +50,8 @@ public class Shooter {
         THIRD
     }
 
+    private final double COUNT_PER_DEGREE = (double) 8192/360;
+
     // FOR FINDING BEST SHOT
     // Gravity constant (m/s^2)
     //private static final double G_m = 9.81;
@@ -88,11 +90,13 @@ public class Shooter {
 
         shootTop.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         shootBottom.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        pivotLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        pivotRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        shootTop.setVelocityPIDFCoefficients(1,1,1,1);
+        shootBottom.setVelocityPIDFCoefficients(1,1,1,1);
 
         pivotLeft.setTargetPositionTolerance(1);
         pivotRight.setTargetPositionTolerance(1);
+        pivotLeft.setPositionPIDFCoefficients(1);
+        pivotRight.setPositionPIDFCoefficients(1);
 
         kickLeft = hardwareMap.get(Servo.class, "leftKick");
         kickCenter = hardwareMap.get(Servo.class, "centerKick");
@@ -107,7 +111,7 @@ public class Shooter {
      * MAKE SURE ALL UNITS ARE IN FT, FT/S^2
      * Currently runs on robot pose and goal pose but can be changed to use limelight distance plus some
      */
-    // TODO: Test this
+    // TODO: Add two degree offset from zero and might need to change velocity calc then test
     private static Result findBestShot(
             double xStart, double yStart,
             double xEnd, double yEnd, // Can replace these with limelight distance to tag plus some
@@ -146,7 +150,7 @@ public class Shooter {
         return best;
     }
 
-   // TODO: Test this
+   // TODO: Find velocity for the motor from a two inch wheel then test
     public class AimAndSpinUp implements Action {
         private final Pose2d currPose;
         // private final double ll_dx
@@ -166,20 +170,27 @@ public class Shooter {
             Result r = findBestShot(currPose.position.x + 0, currPose.position.y + 0,
                     alliance_blue? blueGoalPose.x : redGoalPose.x, alliance_blue? blueGoalPose.y : redGoalPose.y,
                     // ll_dx, ll_dy,
-                    90, 43, 10, 200,
+                    90, 43, 1, 200,
                     5, 5);
 
             shooterVelocity = r.speed;
 
             pivotLeft.setTargetPosition(r.angleDeg);
             pivotRight.setTargetPosition(r.angleDeg);
+            pivotLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            pivotRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            pivotLeft.setPower(1);
+            pivotRight.setPower(1);
 
-            shootTop.setVelocity(r.speed, AngleUnit.DEGREES);
-            shootBottom.setVelocity(r.speed, AngleUnit.DEGREES);
+            //TODO: Add velocity following from two inch wheel to motor
+            shootTop.setVelocity(shooterVelocity, AngleUnit.DEGREES);
+            shootBottom.setVelocity(shooterVelocity, AngleUnit.DEGREES);
+            shootTop.setPower(1);
+            shootBottom.setPower(1);
 
             packet.put("Height error: ", r.error);
 
-            return true;
+            return false;
         }
     }
 
@@ -188,14 +199,35 @@ public class Shooter {
      * Uses odo position
      * Can be changed to use limelight distance to tag
      */
-    // TODO: Test this
     public Action aimAndSpinUp(Pose2d pose, boolean alliance_blue) { // @NonNull LimelightManager ll,
         // Vector2d vect = ll.getDistance();
 
         return new AimAndSpinUp(pose, alliance_blue); // vect.x, vect.y
     }
 
-    // TODO: Test this
+    public class AimInPlace implements Action {
+        @Override
+        public boolean run(@NonNull TelemetryPacket packet) {
+            shooterVelocity = 10;
+
+            pivotLeft.setTargetPosition(80);
+            pivotRight.setTargetPosition(80);
+            pivotLeft.setPower(1);
+            pivotRight.setPower(1);
+
+            //TODO: Add velocity following
+            shootTop.setVelocity(shooterVelocity, AngleUnit.DEGREES);
+            shootBottom.setVelocity(shooterVelocity, AngleUnit.DEGREES);
+            shootTop.setPower(1);
+            shootBottom.setPower(1);
+
+            return false;
+        }
+    }
+    public Action aimInPlace() {
+        return new AimInPlace();
+    }
+
     public class Shoot implements Action {
         private final shootOrder Order;
         private static final long TIMEOUT_MS = 5000;
@@ -234,7 +266,7 @@ public class Shooter {
         }
 
         private boolean motorsAtVelocity(double target) {
-            double VELOCITY_TOLERANCE = 0.5;
+            double VELOCITY_TOLERANCE = 1;
 
             double left = shootTop.getVelocity();
             double right = shootBottom.getVelocity();
@@ -250,8 +282,8 @@ public class Shooter {
             for (Servo servo : sequence) {
                 // Wait until motors are at target velocity
                 if (!waitUntilVelocityReached(shooterVelocity)) {
-                    packet.put("Timeout waiting for motors before moving servo.", false);
-                    return false;
+                    packet.put("Timeout waiting for motors before moving servo.", true);
+                    return true;
                 }
 
                 // Move the current servo
@@ -260,7 +292,7 @@ public class Shooter {
                 servo.setPosition(0);
             }
 
-            return true; // completed all 3 moves
+            return false; // completed all 3 moves
         }
     }
 
@@ -268,7 +300,6 @@ public class Shooter {
      * This action shoots the balls in a specified order
      * Has code for limelight
      */
-    // TODO: Test this
     public Action shoot() { // @NonNull LimelightManager ll, boolean alliance_blue
         greenShot first = greenShot.FIRST; // ll.getOrder(alliance_blue);
         double[] hues = {
@@ -320,7 +351,6 @@ public class Shooter {
      * Can take currPose from limelight or odo
      * Can be changed to use limelight distance to tag
      */
-    // TODO: Test this
     public Action alignAndAim(Pose2d currPose, TurnConstraints constraints, MecanumDrive
             drive, boolean alliance_blue) {
         //Target X - actual X, target Y - actual Y
@@ -331,5 +361,20 @@ public class Shooter {
                 drive.new TurnAction(new TimeTurn(currPose, heading, constraints)),
                 aimAndSpinUp(currPose, alliance_blue) // vect.x, vect.y
         );
+    }
+
+    public class Intake implements Action {
+        @Override
+        public boolean run(@NonNull TelemetryPacket packet) {
+            pivotLeft.setTargetPosition((int)(COUNT_PER_DEGREE * 2));
+            pivotRight.setTargetPosition((int)(COUNT_PER_DEGREE * 2));
+            pivotLeft.setPower(1);
+            pivotRight.setPower(1);
+
+            shootTop.setPower(-1);
+            shootBottom.setPower(-1);
+
+            return false;
+        }
     }
 }
