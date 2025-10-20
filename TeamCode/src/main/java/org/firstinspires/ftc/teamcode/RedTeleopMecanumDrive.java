@@ -74,6 +74,9 @@ public class RedTeleopMecanumDrive extends LinearOpMode {
                 Actions.runBlocking(shooter.alignAndAim(drive.localizer.getPose(), drive.defaultTurnConstraints,
                         drive, false));
             }
+            if (gamepad1.y) {
+                Actions.runBlocking(shooter.intake());
+            }
 
             drive.updatePoseEstimate();
             double botHeading = drive.localizer.getPose().heading.toDouble();

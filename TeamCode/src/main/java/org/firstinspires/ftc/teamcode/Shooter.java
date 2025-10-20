@@ -111,12 +111,11 @@ public class Shooter {
      * MAKE SURE ALL UNITS ARE IN FT, FT/S^2
      * Currently runs on robot pose and goal pose but can be changed to use limelight distance plus some
      */
-    // TODO: Add two degree offset from zero and might need to change velocity calc then test
     private static Result findBestShot(
             double xStart, double yStart,
             double xEnd, double yEnd, // Can replace these with limelight distance to tag plus some
             // double ll_dx, double ll_dy
-            double maxAngle, double angleHorizontal,
+            int minAngle, double maxAngle, double angleHorizontal,
             double minSpeed, double maxSpeed,
             int angleStep, double speedStep) {
 
@@ -128,7 +127,7 @@ public class Shooter {
         double bestError = Double.MAX_VALUE;
         Result best = new Result();
 
-        for (int angle = 0; angle <= maxAngle; angle += angleStep) {
+        for (int angle = minAngle; angle <= maxAngle; angle += angleStep) {
             // Convert to radians relative to horizontal
             double theta = Math.toRadians(angle - angleHorizontal);
 
@@ -141,8 +140,12 @@ public class Shooter {
                 if (error < bestError) {
                     bestError = error;
                     best.angleDeg = angle;
-                    best.speed = v;
                     best.error = error;
+
+                    // Convert ball linear speed to wheel angular speed
+                    double radius = 0.0508 / 2.0;
+                    double omegaRadPerSec = v / radius;
+                    best.speed = omegaRadPerSec * (180.0 / Math.PI);
                 }
             }
         }
@@ -150,7 +153,6 @@ public class Shooter {
         return best;
     }
 
-   // TODO: Find velocity for the motor from a two inch wheel then test
     public class AimAndSpinUp implements Action {
         private final Pose2d currPose;
         // private final double ll_dx
@@ -170,7 +172,7 @@ public class Shooter {
             Result r = findBestShot(currPose.position.x + 0, currPose.position.y + 0,
                     alliance_blue? blueGoalPose.x : redGoalPose.x, alliance_blue? blueGoalPose.y : redGoalPose.y,
                     // ll_dx, ll_dy,
-                    90, 43, 1, 200,
+                    2, 90, 43, 1, 200,
                     5, 5);
 
             shooterVelocity = r.speed;
@@ -210,8 +212,10 @@ public class Shooter {
         public boolean run(@NonNull TelemetryPacket packet) {
             shooterVelocity = 10;
 
-            pivotLeft.setTargetPosition(80);
-            pivotRight.setTargetPosition(80);
+            pivotLeft.setTargetPosition((int)COUNT_PER_DEGREE * 60);
+            pivotRight.setTargetPosition((int)COUNT_PER_DEGREE * 60);
+            pivotLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            pivotRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             pivotLeft.setPower(1);
             pivotRight.setPower(1);
 
@@ -368,6 +372,8 @@ public class Shooter {
         public boolean run(@NonNull TelemetryPacket packet) {
             pivotLeft.setTargetPosition((int)(COUNT_PER_DEGREE * 2));
             pivotRight.setTargetPosition((int)(COUNT_PER_DEGREE * 2));
+            pivotLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            pivotRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             pivotLeft.setPower(1);
             pivotRight.setPower(1);
 
@@ -376,5 +382,8 @@ public class Shooter {
 
             return false;
         }
+    }
+    public Action intake() {
+        return new Intake();
     }
 }
