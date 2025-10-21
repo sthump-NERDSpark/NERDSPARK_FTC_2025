@@ -73,7 +73,7 @@ public class Shooter {
      */
     public Shooter(HardwareMap hardwareMap) {
         shootTop = hardwareMap.get(DcMotorEx.class, "shootTop");
-        shootBottom = hardwareMap.get(DcMotorEx.class, "shootTop");
+        shootBottom = hardwareMap.get(DcMotorEx.class, "shootBottom");
         pivotLeft = hardwareMap.get(DcMotorEx.class, "leftPivot");
         pivotRight = hardwareMap.get(DcMotorEx.class, "rightPivot");
 
@@ -90,11 +90,14 @@ public class Shooter {
 
         shootTop.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         shootBottom.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        // TODO: Tune velocity following
         shootTop.setVelocityPIDFCoefficients(1,1,1,1);
         shootBottom.setVelocityPIDFCoefficients(1,1,1,1);
 
         pivotLeft.setTargetPositionTolerance(1);
         pivotRight.setTargetPositionTolerance(1);
+        // TODO: Tune shooter position
         pivotLeft.setPositionPIDFCoefficients(1);
         pivotRight.setPositionPIDFCoefficients(1);
 
@@ -172,8 +175,8 @@ public class Shooter {
             Result r = findBestShot(currPose.position.x + 0, currPose.position.y + 0,
                     alliance_blue? blueGoalPose.x : redGoalPose.x, alliance_blue? blueGoalPose.y : redGoalPose.y,
                     // ll_dx, ll_dy,
-                    2, 90, 43, 1, 200,
-                    5, 5);
+                    2, 90, 43, 500, 1250,
+                    5, 1);
 
             shooterVelocity = r.speed;
 
@@ -184,7 +187,6 @@ public class Shooter {
             pivotLeft.setPower(1);
             pivotRight.setPower(1);
 
-            //TODO: Add velocity following from two inch wheel to motor
             shootTop.setVelocity(shooterVelocity, AngleUnit.DEGREES);
             shootBottom.setVelocity(shooterVelocity, AngleUnit.DEGREES);
             shootTop.setPower(1);
@@ -219,7 +221,6 @@ public class Shooter {
             pivotLeft.setPower(1);
             pivotRight.setPower(1);
 
-            //TODO: Add velocity following
             shootTop.setVelocity(shooterVelocity, AngleUnit.DEGREES);
             shootBottom.setVelocity(shooterVelocity, AngleUnit.DEGREES);
             shootTop.setPower(1);
@@ -370,8 +371,8 @@ public class Shooter {
     public class Intake implements Action {
         @Override
         public boolean run(@NonNull TelemetryPacket packet) {
-            pivotLeft.setTargetPosition((int)(COUNT_PER_DEGREE * 2));
-            pivotRight.setTargetPosition((int)(COUNT_PER_DEGREE * 2));
+            pivotLeft.setTargetPosition((int)COUNT_PER_DEGREE * 2);
+            pivotRight.setTargetPosition((int)COUNT_PER_DEGREE * 2);
             pivotLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             pivotRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             pivotLeft.setPower(1);
