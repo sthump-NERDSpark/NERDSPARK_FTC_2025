@@ -32,6 +32,13 @@ public class Shooter {
         shootRight.setDirection(DcMotorSimple.Direction.FORWARD);
         intake.setDirection(DcMotorSimple.Direction.REVERSE);
 
+        shootLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        shootRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        // TODO: Tune velocity following
+        shootLeft.setVelocityPIDFCoefficients(100,0.05,0,13);
+        shootRight.setVelocityPIDFCoefficients(1,1,1,1);
+
         servo = hardwareMap.get(CRServo.class, "servo");
 
         servo.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -41,8 +48,8 @@ public class Shooter {
         @Override
         public boolean run(@NonNull TelemetryPacket packet) {
             //TODO: Add velocity following
-            shootLeft.setPower(0.5);
-            shootRight.setPower(0.5);
+            shootLeft.setVelocity(100);
+            shootRight.setVelocity(100);
 
             return false;
         }
