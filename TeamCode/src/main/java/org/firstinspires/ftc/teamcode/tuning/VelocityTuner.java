@@ -24,20 +24,12 @@ public class VelocityTuner extends LinearOpMode {
     private VoltageSensor batteryVoltageSensor;
 
     @Override
-    public void runOpMode() throws InterruptedException {
+    public void runOpMode() {
         // Change my id
-        DcMotorEx myMotor = hardwareMap.get(DcMotorEx.class, "flywheelMotor1");
+        DcMotorEx myMotor = hardwareMap.get(DcMotorEx.class, "shootTop");
 
         // Reverse as appropriate
         // myMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-
-        for (LynxModule module : hardwareMap.getAll(LynxModule.class)) {
-            module.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
-        }
-
-        MotorConfigurationType motorConfigurationType = myMotor.getMotorType().clone();
-        motorConfigurationType.setAchieveableMaxRPMFraction(1.0);
-        myMotor.setMotorType(motorConfigurationType);
 
         myMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
@@ -58,12 +50,9 @@ public class VelocityTuner extends LinearOpMode {
         telemetry.clearAll();
 
         waitForStart();
-
-        if (isStopRequested()) return;
-
         tuningController.start();
-
-        while (!isStopRequested() && opModeIsActive()) {
+        if (isStopRequested()) return;
+        while (opModeIsActive()) {
             double targetVelo = tuningController.update();
             myMotor.setVelocity(targetVelo);
 

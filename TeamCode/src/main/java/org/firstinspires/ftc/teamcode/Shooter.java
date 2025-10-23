@@ -64,8 +64,8 @@ public class Shooter {
         public double error;
     }
 
-    private static final Vector2d blueGoalPose = new Vector2d(0,0);
-    private static final Vector2d redGoalPose = new Vector2d(0,0);
+    private static final Vector2d blueGoalPose = new Vector2d(63,-55);
+    private static final Vector2d redGoalPose = new Vector2d(63,55);
 
     /**
      * Remember to STOP_AND_RESET the pivot encoders in auto init but not in teleop due to the possibility
@@ -92,11 +92,11 @@ public class Shooter {
         shootBottom.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         // TODO: Tune velocity following
-        shootTop.setVelocityPIDFCoefficients(1,1,1,1);
+        shootTop.setVelocityPIDFCoefficients(25,0.2,1,20);
         shootBottom.setVelocityPIDFCoefficients(1,1,1,1);
 
-        pivotLeft.setTargetPositionTolerance(1);
-        pivotRight.setTargetPositionTolerance(1);
+        pivotLeft.setTargetPositionTolerance(5);
+        pivotRight.setTargetPositionTolerance(5);
         // TODO: Tune shooter position
         pivotLeft.setPositionPIDFCoefficients(1);
         pivotRight.setPositionPIDFCoefficients(1);
@@ -271,7 +271,7 @@ public class Shooter {
         }
 
         private boolean motorsAtVelocity(double target) {
-            double VELOCITY_TOLERANCE = 1;
+            double VELOCITY_TOLERANCE = 50;
 
             double left = shootTop.getVelocity();
             double right = shootBottom.getVelocity();
