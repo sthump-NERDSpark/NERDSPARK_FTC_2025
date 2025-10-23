@@ -27,9 +27,8 @@ public class BlueTeleopMecanumDrive extends LinearOpMode {
         if (isStopRequested()) return;
 
         while (opModeIsActive()) {
-            double y = -gamepad1.right_stick_y; // Remember, Y stick value is reversed
+            double y = -gamepad1.right_stick_y;
             double x = -gamepad1.right_stick_x;
-            //double rx = gamepad1.left_stick_x;
 
             if (gamepad1.left_stick_x > 0.15) {
                 commandDegrees -= 0.5;
@@ -81,6 +80,9 @@ public class BlueTeleopMecanumDrive extends LinearOpMode {
             }
             if (gamepad1.y) {
                 Actions.runBlocking(shooter.intake());
+            }
+            if (gamepad1.right_bumper) {
+                Actions.runBlocking(shooter.aimInPlace());
             }
 
             drive.updatePoseEstimate();

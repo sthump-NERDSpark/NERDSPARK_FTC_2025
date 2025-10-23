@@ -82,7 +82,7 @@ public class Shooter {
         pivotLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         pivotRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        // TODO: reverse motor directions if needed
+        // TODO: reverse motor directions
         shootTop.setDirection(DcMotorSimple.Direction.FORWARD);
         shootBottom.setDirection(DcMotorSimple.Direction.REVERSE);
         pivotLeft.setDirection(DcMotorSimple.Direction.FORWARD);
@@ -97,13 +97,19 @@ public class Shooter {
 
         pivotLeft.setTargetPositionTolerance(5);
         pivotRight.setTargetPositionTolerance(5);
-        // TODO: Tune shooter position
+        // TODO: Tune shooter position PID
+        // Decide if we want to switch to Homeostasis PID for position
         pivotLeft.setPositionPIDFCoefficients(1);
         pivotRight.setPositionPIDFCoefficients(1);
 
         kickLeft = hardwareMap.get(Servo.class, "leftKick");
         kickCenter = hardwareMap.get(Servo.class, "centerKick");
         kickRight = hardwareMap.get(Servo.class, "rightKick");
+
+        // Uncomment if needed
+//        kickLeft.setDirection(Servo.Direction.REVERSE);
+//        kickCenter.setDirection(Servo.Direction.REVERSE);
+//        kickRight.setDirection(Servo.Direction.REVERSE);
 
         sensorLeft = hardwareMap.get(NormalizedColorSensor.class, "leftColor");
         sensorCenter = hardwareMap.get(NormalizedColorSensor.class, "centerColor");
@@ -189,8 +195,6 @@ public class Shooter {
 
             shootTop.setVelocity(shooterVelocity, AngleUnit.DEGREES);
             shootBottom.setVelocity(shooterVelocity, AngleUnit.DEGREES);
-            shootTop.setPower(1);
-            shootBottom.setPower(1);
 
             packet.put("Height error: ", r.error);
 
@@ -212,7 +216,8 @@ public class Shooter {
     public class AimInPlace implements Action {
         @Override
         public boolean run(@NonNull TelemetryPacket packet) {
-            shooterVelocity = 10;
+            // TODO: Tune velocity and position
+            shooterVelocity = 1500;
 
             pivotLeft.setTargetPosition((int)COUNT_PER_DEGREE * 60);
             pivotRight.setTargetPosition((int)COUNT_PER_DEGREE * 60);
@@ -223,8 +228,6 @@ public class Shooter {
 
             shootTop.setVelocity(shooterVelocity, AngleUnit.DEGREES);
             shootBottom.setVelocity(shooterVelocity, AngleUnit.DEGREES);
-            shootTop.setPower(1);
-            shootBottom.setPower(1);
 
             return false;
         }
@@ -292,8 +295,10 @@ public class Shooter {
                 }
 
                 // Move the current servo
-                servo.setPosition(1);
-                packet.put("Moved servo to position " + 1, true);
+                // TODO: Find position
+                servo.setPosition(0.2);
+                packet.put("Moved servo to position ", true);
+                // TODO: Find position
                 servo.setPosition(0);
             }
 
