@@ -1,13 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
-import androidx.annotation.NonNull;
-
-import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
-import com.acmerobotics.roadrunner.Action;
-import com.acmerobotics.roadrunner.Pose2d;
-import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.TimeTurn;
-import com.acmerobotics.roadrunner.TurnConstraints;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -20,6 +13,17 @@ import org.firstinspires.ftc.robotcore.external.JavaUtil;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
 public class Shooter {
+    public enum ShooterActions {
+        Intake,
+        AlignAndAim,
+        Shoot,
+        AimAndSpinUp,
+        AimInPlace
+    }
+    private ShooterActions currentAction;
+    private final MecanumDrive Drive;
+    private final boolean alliance_blue;
+
     private final DcMotorEx shootTop;
     private final DcMotorEx shootBottom;
     public final DcMotorEx pivotLeft;
@@ -71,7 +75,10 @@ public class Shooter {
      * Remember to STOP_AND_RESET the pivot encoders in auto init but not in teleop due to the possibility
      * that the starting position may not be exact
      */
-    public Shooter(HardwareMap hardwareMap) {
+    public Shooter(HardwareMap hardwareMap,MecanumDrive drive,boolean alliance) {
+        this.Drive = drive;
+        this.alliance_blue = alliance;
+
         shootTop = hardwareMap.get(DcMotorEx.class, "shootTop");
         shootBottom = hardwareMap.get(DcMotorEx.class, "shootBottom");
         pivotLeft = hardwareMap.get(DcMotorEx.class, "leftPivot");
@@ -114,6 +121,21 @@ public class Shooter {
         sensorLeft = hardwareMap.get(NormalizedColorSensor.class, "leftColor");
         sensorCenter = hardwareMap.get(NormalizedColorSensor.class, "centerColor");
         sensorRight = hardwareMap.get(NormalizedColorSensor.class, "rightColor");
+    }
+
+    public void setAction(ShooterActions action) {
+        this.currentAction = action;
+    }
+
+    public void updateAction() {
+        switch (currentAction) {
+            case Shoot: shoot();
+            case Intake: Intake();
+            case AlignAndAim: alignAndAim();
+            case AimAndSpinUp: AimAndSpinUp();
+            case AimInPlace: AimInPlace();
+            default: Zero();
+        }
     }
 
     /**
@@ -162,87 +184,54 @@ public class Shooter {
         return best;
     }
 
-    public class AimAndSpinUp implements Action {
-        private final Pose2d currPose;
-        // private final double ll_dx
-        // private final double ll_dy
-        private final boolean alliance_blue;
-
-        public AimAndSpinUp(Pose2d pose, boolean alliance) { // double lldx, double lldy
-            // this.ll_dx = lldx
-            // this.ll_dy = lldy
-            this.currPose = pose;
-            this.alliance_blue = alliance;
-        }
-
-        @Override
-        public boolean run(@NonNull TelemetryPacket packet) {
-            // TODO: Adjust values
-            Result r = findBestShot(currPose.position.x + 0, currPose.position.y + 0,
-                    alliance_blue? blueGoalPose.x : redGoalPose.x, alliance_blue? blueGoalPose.y : redGoalPose.y,
-                    // ll_dx, ll_dy,
-                    2, 90, 43, 500, 1250,
-                    5, 1);
-
-            shooterVelocity = r.speed;
-
-            pivotLeft.setTargetPosition(r.angleDeg);
-            pivotRight.setTargetPosition(r.angleDeg);
-            pivotLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            pivotRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            pivotLeft.setPower(1);
-            pivotRight.setPower(1);
-
-            shootTop.setVelocity(shooterVelocity, AngleUnit.DEGREES);
-            shootBottom.setVelocity(shooterVelocity, AngleUnit.DEGREES);
-
-            packet.put("Height error: ", r.error);
-
-            return false;
-        }
-    }
-
     /**
      * This action aims the shooter and spins up the motors
      * Uses odo position
      * Can be changed to use limelight distance to tag
      */
-    public Action aimAndSpinUp(Pose2d pose, boolean alliance_blue) { // @NonNull LimelightManager ll,
+    public void AimAndSpinUp() { // @NonNull LimelightManager ll,
         // Vector2d vect = ll.getDistance();
+        this.Drive.localizer.update();
+        // TODO: Adjust values
+        Result r = findBestShot(this.Drive.localizer.getPose().position.x + 0,
+                this.Drive.localizer.getPose().position.y + 0,
+                this.alliance_blue? blueGoalPose.x : redGoalPose.x, this.alliance_blue? blueGoalPose.y : redGoalPose.y,
+                // vect.x, vect.y,
+                2, 90, 43, 500, 1250,
+                5, 1);
 
-        return new AimAndSpinUp(pose, alliance_blue); // vect.x, vect.y
+        shooterVelocity = r.speed;
+
+        pivotLeft.setTargetPosition(r.angleDeg);
+        pivotRight.setTargetPosition(r.angleDeg);
+        pivotLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        pivotRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        pivotLeft.setPower(1);
+        pivotRight.setPower(1);
+
+        shootTop.setVelocity(shooterVelocity, AngleUnit.DEGREES);
+        shootBottom.setVelocity(shooterVelocity, AngleUnit.DEGREES);
+
+//      packet.put("Height error: ", r.error);
     }
 
-    public class AimInPlace implements Action {
-        @Override
-        public boolean run(@NonNull TelemetryPacket packet) {
-            // TODO: Tune velocity and position
-            shooterVelocity = 1500;
+    public void AimInPlace() {
+        // TODO: Tune velocity and position
+        shooterVelocity = 1500;
 
-            pivotLeft.setTargetPosition((int)COUNT_PER_DEGREE * 60);
-            pivotRight.setTargetPosition((int)COUNT_PER_DEGREE * 60);
-            pivotLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            pivotRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            pivotLeft.setPower(1);
-            pivotRight.setPower(1);
+        pivotLeft.setTargetPosition((int)COUNT_PER_DEGREE * 60);
+        pivotRight.setTargetPosition((int)COUNT_PER_DEGREE * 60);
+        pivotLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        pivotRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        pivotLeft.setPower(1);
+        pivotRight.setPower(1);
 
-            shootTop.setVelocity(shooterVelocity, AngleUnit.DEGREES);
-            shootBottom.setVelocity(shooterVelocity, AngleUnit.DEGREES);
-
-            return false;
-        }
-    }
-    public Action aimInPlace() {
-        return new AimInPlace();
+        shootTop.setVelocity(shooterVelocity, AngleUnit.DEGREES);
+        shootBottom.setVelocity(shooterVelocity, AngleUnit.DEGREES);
     }
 
-    public class Shoot implements Action {
-        private final shootOrder Order;
+    public class Shoot {
         private static final long TIMEOUT_MS = 5000;
-
-        public Shoot(shootOrder order) {
-            this.Order = order;
-        }
 
         // Build the servo order dynamically based on order
         private Servo[] getServoOrder(shootOrder order) {
@@ -282,27 +271,24 @@ public class Shooter {
                     Math.abs(right - target) < VELOCITY_TOLERANCE;
         }
 
-        @Override
-        public boolean run(@NonNull TelemetryPacket packet) {
-            Servo[] sequence = getServoOrder(this.Order);
-            packet.put("Servo order:", sequence);
+        public Shoot(shootOrder order) {
+            Servo[] sequence = getServoOrder(order);
+//            packet.put("Servo order:", sequence);
 
             for (Servo servo : sequence) {
                 // Wait until motors are at target velocity
-                if (!waitUntilVelocityReached(shooterVelocity)) {
-                    packet.put("Timeout waiting for motors before moving servo.", true);
-                    return true;
+                while (!waitUntilVelocityReached(shooterVelocity)) {
+//                    packet.put("Timeout waiting for motors before moving servo.", true);
+                    servo.setPosition(0);
                 }
 
                 // Move the current servo
                 // TODO: Find position
                 servo.setPosition(0.2);
-                packet.put("Moved servo to position ", true);
+//                packet.put("Moved servo to position ", true);
                 // TODO: Find position
                 servo.setPosition(0);
             }
-
-            return false; // completed all 3 moves
         }
     }
 
@@ -310,7 +296,7 @@ public class Shooter {
      * This action shoots the balls in a specified order
      * Has code for limelight
      */
-    public Action shoot() { // @NonNull LimelightManager ll, boolean alliance_blue
+    public Shoot shoot() { // @NonNull LimelightManager ll, boolean alliance_blue
         greenShot first = greenShot.FIRST; // ll.getOrder(alliance_blue);
         double[] hues = {
                 JavaUtil.colorToHue(sensorLeft.getNormalizedColors().toColor()),
@@ -361,35 +347,38 @@ public class Shooter {
      * Can take currPose from limelight or odo
      * Can be changed to use limelight distance to tag
      */
-    public Action alignAndAim(Pose2d currPose, TurnConstraints constraints, MecanumDrive
-            drive, boolean alliance_blue) {
+    public void alignAndAim() {
+        this.Drive.localizer.update();
         //Target X - actual X, target Y - actual Y
-        double heading = Math.atan2((alliance_blue? blueGoalPose.x : redGoalPose.x) - currPose.position.x,
-                (alliance_blue? blueGoalPose.y : redGoalPose.y) - currPose.position.y);
-        // Vector2d vect = ll.getDistance();
-        return new SequentialAction(
-                drive.new TurnAction(new TimeTurn(currPose, heading, constraints)),
-                aimAndSpinUp(currPose, alliance_blue) // vect.x, vect.y
-        );
+        double heading = Math.atan2((this.alliance_blue? blueGoalPose.x : redGoalPose.x) - this.Drive.localizer.getPose().position.x,
+                (this.alliance_blue? blueGoalPose.y : redGoalPose.y) - this.Drive.localizer.getPose().position.y);
+        this.Drive.new TurnAction(new TimeTurn(this.Drive.localizer.getPose(), heading, this.Drive.defaultTurnConstraints));
+        AimAndSpinUp();
     }
 
-    public class Intake implements Action {
-        @Override
-        public boolean run(@NonNull TelemetryPacket packet) {
-            pivotLeft.setTargetPosition((int)COUNT_PER_DEGREE * 2);
-            pivotRight.setTargetPosition((int)COUNT_PER_DEGREE * 2);
-            pivotLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            pivotRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            pivotLeft.setPower(1);
-            pivotRight.setPower(1);
+    public void Intake() {
+        pivotLeft.setTargetPosition((int)COUNT_PER_DEGREE * 2);
+        pivotRight.setTargetPosition((int)COUNT_PER_DEGREE * 2);
+        pivotLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        pivotRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        pivotLeft.setPower(1);
+        pivotRight.setPower(1);
 
-            shootTop.setPower(-1);
-            shootBottom.setPower(-1);
-
-            return false;
-        }
+        shootTop.setPower(-1);
+        shootBottom.setPower(-1);
     }
-    public Action intake() {
-        return new Intake();
+
+    private void Zero() {
+        shootTop.setVelocity(0);
+        shootBottom.setVelocity(0);
+        pivotLeft.setTargetPosition((int)COUNT_PER_DEGREE * 2);
+        pivotRight.setTargetPosition((int)COUNT_PER_DEGREE * 2);
+        pivotLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        pivotRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        pivotLeft.setPower(1);
+        pivotRight.setPower(1);
+        kickLeft.setPosition(0);
+        kickCenter.setPosition(0);
+        kickRight.setPosition(0);
     }
 }

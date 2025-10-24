@@ -17,7 +17,7 @@ public class RedTeleopMecanumDrive extends LinearOpMode {
         MecanumDrive drive = new MecanumDrive(hardwareMap, new Pose2d(0,0,0));
         double commandDegrees = 0;
         PID turnController = new PID(0.05, 0, 0.0000001);
-        Shooter shooter = new Shooter(hardwareMap);
+        Shooter shooter = new Shooter(hardwareMap, drive, false);
 
         waitForStart();
 
@@ -62,23 +62,24 @@ public class RedTeleopMecanumDrive extends LinearOpMode {
                 drive.imu.resetYaw();
             }
 
-            drive.localizer.update();
-
             if (gamepad1.b) {
-                Actions.runBlocking(shooter.aimAndSpinUp(drive.localizer.getPose(), false));
+                shooter.setAction(Shooter.ShooterActions.AimAndSpinUp);
             }
             if (gamepad1.x) {
-                Actions.runBlocking(shooter.shoot());
+                shooter.setAction(Shooter.ShooterActions.Shoot);
             }
             if (gamepad1.a) {
-                Actions.runBlocking(shooter.alignAndAim(drive.localizer.getPose(), drive.defaultTurnConstraints,
-                        drive, false));
+                shooter.setAction(Shooter.ShooterActions.AlignAndAim);
             }
             if (gamepad1.y) {
-                Actions.runBlocking(shooter.intake());
+                shooter.setAction(Shooter.ShooterActions.Intake);
             }
+            if (gamepad1.right_bumper) {
+                shooter.setAction(Shooter.ShooterActions.AimInPlace);
+            }
+            shooter.updateAction();
 
-            drive.updatePoseEstimate();
+            drive.localizer.update();
             double botHeading = drive.localizer.getPose().heading.toDouble();
 
             // Rotate the movement direction counter to the bot's rotation
