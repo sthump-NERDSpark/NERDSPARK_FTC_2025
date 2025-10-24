@@ -1,19 +1,21 @@
 package org.firstinspires.ftc.teamcode;
 
-import androidx.annotation.NonNull;
-
-import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
-import com.acmerobotics.roadrunner.Action;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.Servo;
 
 public class Shooter {
-    private final DcMotorEx shootLeft;
-    private final DcMotorEx shootRight;
+    public enum ShooterActions {
+        Intake,
+        SpinUpWheels,
+        Shoot
+    }
+    private ShooterActions currentAction;
+
+    public final DcMotorEx shootLeft;
+    public final DcMotorEx shootRight;
     private final DcMotorEx intake;
     private final DcMotorEx conveyor;
 
@@ -28,66 +30,64 @@ public class Shooter {
         shootLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         shootRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
 
-        shootLeft.setDirection(DcMotorSimple.Direction.REVERSE);
-        shootRight.setDirection(DcMotorSimple.Direction.FORWARD);
+        shootRight.setDirection(DcMotorSimple.Direction.REVERSE);
         intake.setDirection(DcMotorSimple.Direction.REVERSE);
 
         shootLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         shootRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        // TODO: Tune velocity following
         shootLeft.setVelocityPIDFCoefficients(100,0.05,0,13);
-        shootRight.setVelocityPIDFCoefficients(1,1,1,1);
+        shootRight.setVelocityPIDFCoefficients(100,0.05,0,13);
 
         servo = hardwareMap.get(CRServo.class, "servo");
-
         servo.setDirection(DcMotorSimple.Direction.REVERSE);
     }
 
-    public class SpinUpWheels implements Action {
-        @Override
-        public boolean run(@NonNull TelemetryPacket packet) {
-            //TODO: Add velocity following
-            shootLeft.setVelocity(100);
-            shootRight.setVelocity(100);
+   public void setAction(ShooterActions action) {
+        this.currentAction = action;
+   }
 
-            return false;
+   public void updateAction() {
+        switch (currentAction) {
+            case Shoot: Shoot();
+            case SpinUpWheels: SpinUpWheels();
+            case Intake: Intake();
+            default: Zero();
         }
-    }
-    public Action spinUpWheels() {
-        return new SpinUpWheels();
+   }
+
+    private void SpinUpWheels() {
+        shootLeft.setVelocity(900);
+        shootRight.setVelocity(900);
     }
 
-    private class Shoot implements Action {
-        @Override
-        public boolean run(@NonNull TelemetryPacket packet) {
-            servo.setPower(1);
-            try {
-                Thread.sleep(5000);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                return true;
-            }
-            servo.setPower(0);
+    private void Shoot() {
+        intake.setPower(0);
+        conveyor.setPower(0);
 
-            return false;
+        servo.setPower(0.3);
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
+        servo.setPower(0);
     }
 
-    public Action shoot() {
-        return new Shoot();
+    private void Intake() {
+        shootLeft.setVelocity(0);
+        shootRight.setVelocity(0);
+        servo.setPower(0);
+
+        conveyor.setPower(1);
+        intake.setPower(1);
     }
 
-    public class Intake implements Action {
-        @Override
-        public boolean run(@NonNull TelemetryPacket packet) {
-            conveyor.setPower(1);
-            intake.setPower(1);
-
-            return false;
-        }
-    }
-    public Action intake() {
-        return new Intake();
+    private void Zero() {
+        shootLeft.setVelocity(0);
+        shootRight.setVelocity(0);
+        servo.setPower(0);
+        conveyor.setPower(0);
+        intake.setPower(0);
     }
 }

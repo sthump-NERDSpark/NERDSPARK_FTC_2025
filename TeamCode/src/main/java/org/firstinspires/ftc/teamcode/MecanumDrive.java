@@ -469,14 +469,6 @@ public final class MecanumDrive {
         }
     }
 
-    private double getDT() {
-        double now = timer.seconds();
-        double dt = now - lastTime;
-        lastTime = now;
-
-        return dt;
-    }
-
     public PoseVelocity2d updatePoseEstimate() {
         PoseVelocity2d vel = localizer.update();
         poseHistory.add(localizer.getPose());

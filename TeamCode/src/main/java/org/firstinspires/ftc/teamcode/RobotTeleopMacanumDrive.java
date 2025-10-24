@@ -1,14 +1,13 @@
 package org.firstinspires.ftc.teamcode;
 
-import com.acmerobotics.roadrunner.Action;
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.PoseVelocity2d;
 import com.acmerobotics.roadrunner.Vector2d;
-import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.Util.PID;
 
 @TeleOp(name = "Main Teleop for Mecanum Drive", group = "Robot")
@@ -20,6 +19,8 @@ public class RobotTeleopMacanumDrive extends LinearOpMode {
         double commandDegrees = 0;
         PID turnController = new PID(0.05, 0, 0.0000001);
         Shooter shooter = new Shooter(hardwareMap);
+        FtcDashboard dashboard = FtcDashboard.getInstance();
+        telemetry = new MultipleTelemetry(telemetry, dashboard.getTelemetry());
 
         waitForStart();
 
@@ -55,7 +56,6 @@ public class RobotTeleopMacanumDrive extends LinearOpMode {
 
             double rx = turnController.calculate(Math.toDegrees(drive.localizer.getPose().heading.toDouble()), commandDegrees);
             telemetry.addData("Motor Command: ", rx);
-            telemetry.update();
 
             // This button choice was made so that it is hard to hit on accident,
             // it can be freely changed based on preference.
@@ -65,14 +65,20 @@ public class RobotTeleopMacanumDrive extends LinearOpMode {
             }
 
             if (gamepad1.a) {
-                Actions.runBlocking(shooter.spinUpWheels());
+                shooter.setAction(Shooter.ShooterActions.SpinUpWheels);
             }
             if (gamepad1.x) {
-                Actions.runBlocking(shooter.shoot());
+                shooter.setAction(Shooter.ShooterActions.Shoot);
             }
-            if (gamepad1.b) {
-                Actions.runBlocking(shooter.intake());
+            while (gamepad1.b) {
+                shooter.setAction(Shooter.ShooterActions.Intake);
             }
+            shooter.updateAction();
+
+            telemetry.addData("Shooter left velo", shooter.shootLeft.getVelocity());
+            telemetry.addData("Shooter right velo", shooter.shootRight.getVelocity());
+            telemetry.addData("Lower",0);
+            telemetry.addData("Upper", 1000);
             telemetry.update();
 
             drive.updatePoseEstimate();
