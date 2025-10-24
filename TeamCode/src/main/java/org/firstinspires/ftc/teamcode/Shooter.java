@@ -1,6 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.robotcore.hardware.CRServo;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -19,7 +19,7 @@ public class Shooter {
     private final DcMotorEx intake;
     private final DcMotorEx conveyor;
 
-    private final CRServo servo;
+    private final Servo servo;
 
     public Shooter(HardwareMap hardwareMap) {
         shootLeft = hardwareMap.get(DcMotorEx.class, "shootLeft");
@@ -39,8 +39,8 @@ public class Shooter {
         shootLeft.setVelocityPIDFCoefficients(100,0.05,0,13);
         shootRight.setVelocityPIDFCoefficients(100,0.05,0,13);
 
-        servo = hardwareMap.get(CRServo.class, "servo");
-        servo.setDirection(DcMotorSimple.Direction.REVERSE);
+        servo = hardwareMap.get(Servo.class, "servo");
+        servo.setDirection(Servo.Direction.REVERSE);
     }
 
    public void setAction(ShooterActions action) {
@@ -65,19 +65,31 @@ public class Shooter {
         intake.setPower(0);
         conveyor.setPower(0);
 
-        servo.setPower(0.3);
+        servo.setPosition(0.116);
         try {
             Thread.sleep(500);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
-        servo.setPower(0);
+        servo.setPosition(0.187);
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        servo.setPosition(0.24);
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        servo.setPosition(0.045);
     }
 
     private void Intake() {
         shootLeft.setVelocity(0);
         shootRight.setVelocity(0);
-        servo.setPower(0);
+        servo.setPosition(0);
 
         conveyor.setPower(1);
         intake.setPower(1);
@@ -86,7 +98,7 @@ public class Shooter {
     private void Zero() {
         shootLeft.setVelocity(0);
         shootRight.setVelocity(0);
-        servo.setPower(0);
+        servo.setPosition(0);
         conveyor.setPower(0);
         intake.setPower(0);
     }
