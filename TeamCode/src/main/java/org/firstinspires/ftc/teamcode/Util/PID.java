@@ -16,10 +16,15 @@ public class PID {
     private double integralSum = 0;
     private double lastError = 0;
 
+    private final ElapsedTime timer;
+    private double lastTime;
+
     public PID(double Kp, double Ki, double Kd) {
         this.m_Kp = Kp;
         this.m_Ki = Ki;
         this.m_Kd = Kd;
+        timer = new ElapsedTime();
+        lastTime = timer.seconds();
     }
 
     public double calculate(double reference, double position) {
@@ -87,7 +92,9 @@ public class PID {
     }
 
     public double calculatePosition(double reference, double position) {
-        ElapsedTime timer = new ElapsedTime();
+        double currentTime = timer.seconds();
+        double dt = currentTime - lastTime;
+        lastTime = currentTime;
 
         boolean setPointIsNotReached = !(Math.abs(position - reference) < 1);
 
@@ -103,10 +110,10 @@ public class PID {
             previousFilterEstimate = currentFilterEstimate;
 
             // rate of change of the error
-            double derivative = currentFilterEstimate / timer.seconds();
+            double derivative = currentFilterEstimate / dt;
 
             // sum of all error over time
-            integralSum = integralSum + (error * timer.seconds());
+            integralSum = integralSum + (error * dt);
 
             // max out integral sum
             double maxIntegralSum = 100;

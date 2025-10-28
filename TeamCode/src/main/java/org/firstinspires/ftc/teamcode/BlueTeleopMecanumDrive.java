@@ -56,13 +56,6 @@ public class BlueTeleopMecanumDrive extends LinearOpMode {
             double rx = turnController.calculate(Math.toDegrees(drive.localizer.getPose().heading.toDouble()), commandDegrees);
             telemetry.addData("Motor Command: ", rx);
 
-            // This button choice was made so that it is hard to hit on accident,
-            // it can be freely changed based on preference.
-            // The equivalent button is start on Xbox-style controllers.
-            if (gamepad1.options) {
-                drive.imu.resetYaw();
-            }
-
             if (gamepad1.b) {
                 shooter.setAction(Shooter.ShooterActions.AimAndSpinUp);
             }
