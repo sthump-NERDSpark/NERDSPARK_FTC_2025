@@ -17,7 +17,7 @@ public class RobotTeleopMacanumDrive extends LinearOpMode {
         // Change new Pose2d to match where you start out of auto
         MecanumDrive drive = new MecanumDrive(hardwareMap, new Pose2d(0,0,0));
         double commandDegrees = 0;
-        PID turnController = new PID(0.05, 0, 0.0000001);
+        PID turnController = new PID(0.022, 0, 0.0000005);
         Shooter shooter = new Shooter(hardwareMap);
         FtcDashboard dashboard = FtcDashboard.getInstance();
         telemetry = new MultipleTelemetry(telemetry, dashboard.getTelemetry());
@@ -90,7 +90,7 @@ public class RobotTeleopMacanumDrive extends LinearOpMode {
 
             rotX = rotX * 1.1;  // Counteract imperfect strafing
 
-            drive.setDrivePowers(new PoseVelocity2d(new Vector2d(rotY, rotX), rx));
+            drive.setDrivePowers(new PoseVelocity2d(new Vector2d(rotY, rotX), -rx));
         }
     }
 }

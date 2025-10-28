@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 public class Shooter {
     public enum ShooterActions {
@@ -63,26 +64,14 @@ public class Shooter {
 
     private void Shoot() {
         intake.setPower(0);
-        conveyor.setPower(0);
+        conveyor.setPower(0.25);
 
         servo.setPosition(0.116);
-        try {
-            Thread.sleep(500);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+        Wait(500);
         servo.setPosition(0.187);
-        try {
-            Thread.sleep(500);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+        Wait(500);
         servo.setPosition(0.24);
-        try {
-            Thread.sleep(100);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+        Wait(100);
         servo.setPosition(0.045);
     }
 
@@ -101,5 +90,18 @@ public class Shooter {
         servo.setPosition(0);
         conveyor.setPower(0);
         intake.setPower(0);
+    }
+
+    /**
+     * Time should be in milliseconds
+     */
+    private void Wait(double time) {
+        ElapsedTime timer = new ElapsedTime();
+
+        while (true) {
+            if (timer.milliseconds() >= time) {
+                break;
+            }
+        }
     }
 }
