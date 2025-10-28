@@ -9,7 +9,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.Util.PID;
 
-@TeleOp(name = "Red Teleop for Mecanum Drive", group = "Robot")
+@TeleOp(name = "Red Teleop for Mecanum Drive")
 public class RedTeleopMecanumDrive extends LinearOpMode {
     @Override
     public void runOpMode() {

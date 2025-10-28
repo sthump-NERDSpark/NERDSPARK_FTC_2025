@@ -26,7 +26,7 @@ public class VelocityTuner extends LinearOpMode {
     @Override
     public void runOpMode() {
         // Change my id
-        DcMotorEx myMotor = hardwareMap.get(DcMotorEx.class, "shootTop");
+        DcMotorEx myMotor = hardwareMap.get(DcMotorEx.class, "shootBottom");
 
         // Reverse as appropriate
         // myMotor.setDirection(DcMotorSimple.Direction.REVERSE);

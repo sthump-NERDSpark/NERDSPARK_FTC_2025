@@ -85,4 +85,57 @@ public class PID {
 
         return 0;
     }
+
+    public double calculatePosition(double reference, double position) {
+        ElapsedTime timer = new ElapsedTime();
+
+        boolean setPointIsNotReached = !(Math.abs(position - reference) < 1);
+
+        if (setPointIsNotReached) {
+            // calculate the error
+            double error = reference - position;
+
+            double errorChange = (error - lastError);
+
+            // filter out high frequency noise to increase derivative performance
+            double a = 0.8; // a can be anything from 0 < a < 1
+            double currentFilterEstimate = (a * previousFilterEstimate) + (1- a) * errorChange;
+            previousFilterEstimate = currentFilterEstimate;
+
+            // rate of change of the error
+            double derivative = currentFilterEstimate / timer.seconds();
+
+            // sum of all error over time
+            integralSum = integralSum + (error * timer.seconds());
+
+            // max out integral sum
+            double maxIntegralSum = 100;
+            if (integralSum > maxIntegralSum) {
+                integralSum = maxIntegralSum;
+            }
+
+            if (integralSum < -maxIntegralSum) {
+                integralSum = -maxIntegralSum;
+            }
+
+            // reset integral sum upon setpoint changes
+            if (reference != lastReference) {
+                integralSum = 0;
+            }
+
+            lastError = error;
+
+            lastReference = reference;
+
+            // reset the timer for next time
+            timer.reset();
+
+            double power = (m_Kp * error) + (m_Ki * integralSum) + (m_Kd * derivative);
+            double maxVal = Math.max(Math.abs(power), 1.0);
+
+            return power / maxVal;
+        }
+
+        return 0;
+    }
 }

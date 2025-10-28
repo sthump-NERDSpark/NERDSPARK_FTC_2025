@@ -1,7 +1,11 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.ThermalEquilibrium.homeostasis.Controllers.Feedback.BasicPID;
+import com.ThermalEquilibrium.homeostasis.Parameters.PIDCoefficients;
+import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.TimeTurn;
 import com.acmerobotics.roadrunner.Vector2d;
+import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -11,23 +15,31 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.JavaUtil;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.teamcode.Util.PID;
 
+@Config
 public class Shooter {
     public enum ShooterActions {
         Intake,
         AlignAndAim,
         Shoot,
         AimAndSpinUp,
-        AimInPlace
+        AimInPlace,
+        Zero
     }
-    private ShooterActions currentAction;
+    private ShooterActions currentAction = ShooterActions.Zero;
     private final MecanumDrive Drive;
     private final boolean alliance_blue;
 
-    private final DcMotorEx shootTop;
-    private final DcMotorEx shootBottom;
+    public final DcMotorEx shootTop;
+    public final DcMotorEx shootBottom;
     public final DcMotorEx pivotLeft;
     public final DcMotorEx pivotRight;
+    public final AnalogInput potentiometer;
+    public static double angleCommand = 60;
+    public static double kP = 0;
+    public static double kI = 0;
+    public static double kD = 0;
 
     private final Servo kickLeft;
     private final Servo kickCenter;
@@ -53,8 +65,6 @@ public class Shooter {
         SECOND,
         THIRD
     }
-
-    private final double COUNT_PER_DEGREE = (double) 8192/360;
 
     // FOR FINDING BEST SHOT
     // Gravity constant (m/s^2)
@@ -83,40 +93,31 @@ public class Shooter {
         shootBottom = hardwareMap.get(DcMotorEx.class, "shootBottom");
         pivotLeft = hardwareMap.get(DcMotorEx.class, "leftPivot");
         pivotRight = hardwareMap.get(DcMotorEx.class, "rightPivot");
+        potentiometer = hardwareMap.get(AnalogInput.class, "potentiometer");
 
         shootTop.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         shootBottom.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         pivotLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         pivotRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        // TODO: reverse motor directions
-        shootTop.setDirection(DcMotorSimple.Direction.FORWARD);
-        shootBottom.setDirection(DcMotorSimple.Direction.REVERSE);
-        pivotLeft.setDirection(DcMotorSimple.Direction.FORWARD);
-        pivotRight.setDirection(DcMotorSimple.Direction.REVERSE);
+        pivotLeft.setDirection(DcMotorSimple.Direction.REVERSE);
+        pivotRight.setDirection(DcMotorSimple.Direction.FORWARD);
+        pivotLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        pivotRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         shootTop.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         shootBottom.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
-        // TODO: Tune velocity following
-        shootTop.setVelocityPIDFCoefficients(25,0.2,1,20);
-        shootBottom.setVelocityPIDFCoefficients(1,1,1,1);
-
-        pivotLeft.setTargetPositionTolerance(5);
-        pivotRight.setTargetPositionTolerance(5);
-        // TODO: Tune shooter position PID
-        // Decide if we want to switch to Homeostasis PID for position
-        pivotLeft.setPositionPIDFCoefficients(1);
-        pivotRight.setPositionPIDFCoefficients(1);
+        shootTop.setVelocityPIDFCoefficients(55,0.6,0.9,20);
+        shootBottom.setVelocityPIDFCoefficients(55,0.6,0.9,20);
 
         kickLeft = hardwareMap.get(Servo.class, "leftKick");
         kickCenter = hardwareMap.get(Servo.class, "centerKick");
         kickRight = hardwareMap.get(Servo.class, "rightKick");
 
         // Uncomment if needed
-//        kickLeft.setDirection(Servo.Direction.REVERSE);
-//        kickCenter.setDirection(Servo.Direction.REVERSE);
-//        kickRight.setDirection(Servo.Direction.REVERSE);
+        kickLeft.setDirection(Servo.Direction.FORWARD);
+        kickCenter.setDirection(Servo.Direction.FORWARD);
+        kickRight.setDirection(Servo.Direction.REVERSE);
 
         sensorLeft = hardwareMap.get(NormalizedColorSensor.class, "leftColor");
         sensorCenter = hardwareMap.get(NormalizedColorSensor.class, "centerColor");
@@ -134,8 +135,14 @@ public class Shooter {
             case AlignAndAim: alignAndAim();
             case AimAndSpinUp: AimAndSpinUp();
             case AimInPlace: AimInPlace();
-            default: Zero();
+            case Zero: Zero();
         }
+    }
+
+    public double getPotPosition() {
+        double currVolts = potentiometer.getVoltage();
+        double position = ((270*currVolts+445.5)-Math.sqrt(Math.pow(270*currVolts+445.5, 2) + 4*currVolts*(36450*currVolts-120285)))/(2*currVolts);
+        return position - 24.7328;
     }
 
     /**
@@ -192,23 +199,22 @@ public class Shooter {
     public void AimAndSpinUp() { // @NonNull LimelightManager ll,
         // Vector2d vect = ll.getDistance();
         this.Drive.localizer.update();
-        // TODO: Adjust values
+
         Result r = findBestShot(this.Drive.localizer.getPose().position.x + 0,
                 this.Drive.localizer.getPose().position.y + 0,
                 this.alliance_blue? blueGoalPose.x : redGoalPose.x, this.alliance_blue? blueGoalPose.y : redGoalPose.y,
                 // vect.x, vect.y,
-                2, 90, 43, 500, 1250,
-                5, 1);
+                1, 75, 40, 375, 1400,
+                5, 25);
 
         shooterVelocity = r.speed;
 
-        pivotLeft.setTargetPosition(r.angleDeg);
-        pivotRight.setTargetPosition(r.angleDeg);
-        pivotLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        pivotRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        pivotLeft.setPower(1);
-        pivotRight.setPower(1);
+//        double command = controller.calculate(70, getPotPosition());
+//        pivotLeft.setPower(command);
+//        pivotRight.setPower(command);
 
+        shootTop.setDirection(DcMotorSimple.Direction.FORWARD);
+        shootBottom.setDirection(DcMotorSimple.Direction.FORWARD);
         shootTop.setVelocity(shooterVelocity, AngleUnit.DEGREES);
         shootBottom.setVelocity(shooterVelocity, AngleUnit.DEGREES);
 
@@ -217,17 +223,19 @@ public class Shooter {
 
     public void AimInPlace() {
         // TODO: Tune velocity and position
-        shooterVelocity = 1500;
+        shooterVelocity = 1000;
 
-        pivotLeft.setTargetPosition((int)COUNT_PER_DEGREE * 60);
-        pivotRight.setTargetPosition((int)COUNT_PER_DEGREE * 60);
-        pivotLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        pivotRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        pivotLeft.setPower(1);
-        pivotRight.setPower(1);
+        PID controller = new PID(kP,kI,kD);
+        double command = controller.calculatePosition(angleCommand, getPotPosition());
+        pivotLeft.setPower(command);
+        pivotRight.setPower(command);
 
-        shootTop.setVelocity(shooterVelocity, AngleUnit.DEGREES);
-        shootBottom.setVelocity(shooterVelocity, AngleUnit.DEGREES);
+        if (Math.abs(angleCommand - pivotLeft.getCurrentPosition()) <= 5) {
+            shootTop.setDirection(DcMotorSimple.Direction.FORWARD);
+            shootBottom.setDirection(DcMotorSimple.Direction.FORWARD);
+            shootTop.setVelocity(shooterVelocity);
+            shootBottom.setVelocity(shooterVelocity);
+        }
     }
 
     public class Shoot {
@@ -252,13 +260,6 @@ public class Shooter {
             while (true) {
                 if (motorsAtVelocity(target)) return true;
                 if (System.nanoTime() - start > timeoutNs) return false;
-
-                try {
-                    Thread.sleep(20);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    return false;
-                }
             }
         }
 
@@ -279,15 +280,15 @@ public class Shooter {
                 // Wait until motors are at target velocity
                 while (!waitUntilVelocityReached(shooterVelocity)) {
 //                    packet.put("Timeout waiting for motors before moving servo.", true);
-                    servo.setPosition(0);
+                    servo.setPosition(0.65);
                 }
 
                 // Move the current servo
                 // TODO: Find position
-                servo.setPosition(0.2);
+                servo.setPosition(0.85);
 //                packet.put("Moved servo to position ", true);
                 // TODO: Find position
-                servo.setPosition(0);
+                servo.setPosition(0.65);
             }
         }
     }
@@ -296,7 +297,7 @@ public class Shooter {
      * This action shoots the balls in a specified order
      * Has code for limelight
      */
-    public Shoot shoot() { // @NonNull LimelightManager ll, boolean alliance_blue
+    public void shoot() { // @NonNull LimelightManager ll, boolean alliance_blue
         greenShot first = greenShot.FIRST; // ll.getOrder(alliance_blue);
         double[] hues = {
                 JavaUtil.colorToHue(sensorLeft.getNormalizedColors().toColor()),
@@ -310,36 +311,36 @@ public class Shooter {
                     case 0:
                         switch (first) {
                             case FIRST:
-                                return new Shoot(shootOrder.LEFT);
+                                new Shoot(shootOrder.LEFT);
                             case SECOND:
-                                return new Shoot(shootOrder.CENTER_LEFT);
+                                new Shoot(shootOrder.CENTER_LEFT);
                             case THIRD:
-                                return new Shoot(shootOrder.RIGHT);
+                                new Shoot(shootOrder.RIGHT);
                         }
                     // Green ball is in center
                     case 1:
                         switch (first) {
                             case FIRST:
-                                return new Shoot(shootOrder.CENTER_LEFT);
+                                new Shoot(shootOrder.CENTER_LEFT);
                             case SECOND:
-                                return new Shoot(shootOrder.LEFT);
+                                new Shoot(shootOrder.LEFT);
                             case THIRD:
-                                return new Shoot(shootOrder.CENTER_LAST);
+                                new Shoot(shootOrder.CENTER_LAST);
                         }
                     // Green ball is in right
                     case 2:
                         switch (first) {
                             case FIRST:
-                                return new Shoot(shootOrder.RIGHT);
+                                new Shoot(shootOrder.RIGHT);
                             case SECOND:
-                                return new Shoot(shootOrder.CENTER_RIGHT);
+                                new Shoot(shootOrder.CENTER_RIGHT);
                             case THIRD:
-                                return new Shoot(shootOrder.LEFT);
+                                new Shoot(shootOrder.LEFT);
                         }
                 }
             }
         }
-        return new Shoot(shootOrder.LEFT);
+        new Shoot(shootOrder.LEFT);
     }
 
     /**
@@ -357,28 +358,22 @@ public class Shooter {
     }
 
     public void Intake() {
-        pivotLeft.setTargetPosition((int)COUNT_PER_DEGREE * 2);
-        pivotRight.setTargetPosition((int)COUNT_PER_DEGREE * 2);
-        pivotLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        pivotRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        pivotLeft.setPower(1);
-        pivotRight.setPower(1);
+//        double command = controller.calculate(1, getPotPosition());
+//        pivotLeft.setPower(command);
+//        pivotRight.setPower(command);
 
-        shootTop.setPower(-1);
-        shootBottom.setPower(-1);
+        shootTop.setPower(-0.5);
+        shootBottom.setPower(0);
     }
 
     private void Zero() {
         shootTop.setVelocity(0);
         shootBottom.setVelocity(0);
-        pivotLeft.setTargetPosition((int)COUNT_PER_DEGREE * 2);
-        pivotRight.setTargetPosition((int)COUNT_PER_DEGREE * 2);
-        pivotLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        pivotRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        pivotLeft.setPower(1);
-        pivotRight.setPower(1);
-        kickLeft.setPosition(0);
-        kickCenter.setPosition(0);
-        kickRight.setPosition(0);
+//        double command = controller.calculate(2, getPotPosition());
+//        pivotLeft.setPower(command);
+//        pivotRight.setPower(command);
+        kickLeft.setPosition(0.65);
+        kickCenter.setPosition(0.65);
+        kickRight.setPosition(0.65);
     }
 }
