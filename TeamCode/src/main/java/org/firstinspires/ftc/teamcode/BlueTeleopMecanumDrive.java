@@ -10,8 +10,8 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.Util.PID;
 
-@TeleOp(name = "Main Teleop for Mecanum Drive", group = "Robot")
-public class RobotTeleopMacanumDrive extends LinearOpMode {
+@TeleOp(name = "Blue Teleop for Mecanum Drive", group = "Robot")
+public class BlueTeleopMecanumDrive extends LinearOpMode {
     @Override
     public void runOpMode() {
         // Change new Pose2d to match where you start out of auto
@@ -27,8 +27,8 @@ public class RobotTeleopMacanumDrive extends LinearOpMode {
         if (isStopRequested()) return;
 
         while (opModeIsActive()) {
-            double y = -gamepad1.right_stick_y; // Remember, Y stick value is reversed
-            double x = -gamepad1.right_stick_x;
+            double y = -(gamepad1.right_stick_y * 0.5); // Remember, Y stick value is reversed
+            double x = -(gamepad1.right_stick_x * 0.5);
             //double rx = gamepad1.left_stick_x;
 
             if (gamepad1.left_stick_x > 0.15) {
@@ -57,14 +57,17 @@ public class RobotTeleopMacanumDrive extends LinearOpMode {
             double rx = turnController.calculate(Math.toDegrees(drive.localizer.getPose().heading.toDouble()), commandDegrees);
             telemetry.addData("Motor Command: ", rx);
 
-            if (gamepad1.a) {
+            if (gamepad2.a) {
                 shooter.setAction(Shooter.ShooterActions.SpinUpWheels);
             }
-            if (gamepad1.x) {
+            if (gamepad2.x) {
                 shooter.setAction(Shooter.ShooterActions.Shoot);
             }
-            while (gamepad1.b) {
+            if (gamepad2.b) {
                 shooter.setAction(Shooter.ShooterActions.Intake);
+            }
+            if (gamepad2.y) {
+                commandDegrees = -45;
             }
             shooter.updateAction();
 

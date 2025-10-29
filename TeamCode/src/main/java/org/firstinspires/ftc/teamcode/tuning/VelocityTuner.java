@@ -25,6 +25,7 @@ public class VelocityTuner extends LinearOpMode {
     public void runOpMode() {
         // Change my id
         DcMotorEx myMotor = hardwareMap.get(DcMotorEx.class, "shootRight");
+        myMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
 
         // Reverse as appropriate
         // myMotor.setDirection(DcMotorSimple.Direction.REVERSE);

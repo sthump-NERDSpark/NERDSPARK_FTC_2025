@@ -11,9 +11,10 @@ public class Shooter {
     public enum ShooterActions {
         Intake,
         SpinUpWheels,
-        Shoot
+        Shoot,
+        Zero
     }
-    private ShooterActions currentAction;
+    private ShooterActions currentAction = ShooterActions.Zero;
 
     public final DcMotorEx shootLeft;
     public final DcMotorEx shootRight;
@@ -37,9 +38,6 @@ public class Shooter {
         shootLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         shootRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        shootLeft.setVelocityPIDFCoefficients(100,0.05,0,13);
-        shootRight.setVelocityPIDFCoefficients(100,0.05,0,13);
-
         servo = hardwareMap.get(Servo.class, "servo");
         servo.setDirection(Servo.Direction.REVERSE);
     }
@@ -50,46 +48,47 @@ public class Shooter {
 
    public void updateAction() {
         switch (currentAction) {
-            case Shoot: Shoot();
-            case SpinUpWheels: SpinUpWheels();
-            case Intake: Intake();
-            default: Zero();
+            case Shoot: Shoot(); break;
+            case SpinUpWheels: SpinUpWheels(); break;
+            case Intake: Intake(); break;
         }
    }
 
     private void SpinUpWheels() {
+        shootLeft.setVelocityPIDFCoefficients(100,0.05,0,13);
+        shootRight.setVelocityPIDFCoefficients(100,0.05,0,13);
         shootLeft.setVelocity(900);
         shootRight.setVelocity(900);
     }
 
     private void Shoot() {
         intake.setPower(0);
-        conveyor.setPower(0.25);
+        conveyor.setPower(1);
+        shootLeft.setVelocityPIDFCoefficients(100,0.05,0,13);
+        shootRight.setVelocityPIDFCoefficients(100,0.05,0,13);
+        shootLeft.setVelocity(900);
+        shootRight.setVelocity(900);
 
         servo.setPosition(0.116);
-        Wait(500);
+        Wait(1500);
         servo.setPosition(0.187);
-        Wait(500);
+        Wait(1500);
         servo.setPosition(0.24);
-        Wait(100);
-        servo.setPosition(0.045);
+        Wait(750);
+        servo.setPosition(0.05);
+        conveyor.setPower(0);
+        shootLeft.setVelocity(0);
+        shootRight.setVelocity(0);
+        currentAction = ShooterActions.Intake;
     }
 
     private void Intake() {
         shootLeft.setVelocity(0);
         shootRight.setVelocity(0);
-        servo.setPosition(0);
+        servo.setPosition(0.05);
 
         conveyor.setPower(1);
         intake.setPower(1);
-    }
-
-    private void Zero() {
-        shootLeft.setVelocity(0);
-        shootRight.setVelocity(0);
-        servo.setPosition(0);
-        conveyor.setPower(0);
-        intake.setPower(0);
     }
 
     /**
