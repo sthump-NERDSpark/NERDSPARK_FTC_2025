@@ -36,7 +36,7 @@ public class Shooter {
     public final DcMotorEx pivotLeft;
     public final DcMotorEx pivotRight;
     public final AnalogInput potentiometer;
-    private final PID controller = new PID(0.015,0.0001,0);
+    private final PID controller = new PID(0.015,0.0002,0);
 
     private final Servo kickLeft;
     private final Servo kickCenter;
@@ -222,13 +222,13 @@ public class Shooter {
         // TODO: Tune velocity and position
         shooterVelocity = 1200;
 
-        double command = controller.calculatePosition(85, getPotPosition());
+        double command = controller.calculatePosition(90, getPotPosition());
         pivotLeft.setPower(command);
         pivotRight.setPower(command);
 
-        if (Math.abs(85 - getPotPosition()) <= 5) {
+        if (Math.abs(90 - getPotPosition()) <= 5) {
             telemetry.addLine("Spinning up wheels");
-            shootTop.setVelocity(shooterVelocity);
+            shootTop.setVelocity(shooterVelocity+4000);
             shootBottom.setVelocity(shooterVelocity);
         }
     }
@@ -248,10 +248,10 @@ public class Shooter {
     private boolean motorsAtVelocity(double target) {
         double VELOCITY_TOLERANCE = 75;
 
-        double left = shootTop.getVelocity();
-        double right = shootBottom.getVelocity();
-        return Math.abs(left - target) < VELOCITY_TOLERANCE &&
-                Math.abs(right - target) < VELOCITY_TOLERANCE;
+        double top = shootTop.getVelocity();
+        double bottom = shootBottom.getVelocity();
+        return Math.abs(top - (target+4000)) < VELOCITY_TOLERANCE ||
+                Math.abs(bottom - target) < VELOCITY_TOLERANCE;
     }
 
     public void Shoot(shootOrder order) {
@@ -266,14 +266,15 @@ public class Shooter {
             // Move the current servo
             servo.setPosition(0.85);
             telemetry.addLine("Moved servo");
-            Wait(300);
+            Wait(500);
             servo.setPosition(0.65);
             telemetry.update();
             Wait(100);
             servoCounter++;
         }
-        if (servoCounter >= 2) {
+        if (servoCounter > 2) {
             servoCounter = 0;
+            currentAction = ShooterActions.Intake;
         }
     }
 
@@ -348,12 +349,12 @@ public class Shooter {
     }
 
     public void Intake() {
-        double command = controller.calculate(1, getPotPosition());
+        double command = controller.calculatePosition(0, getPotPosition());
         pivotLeft.setPower(command);
         pivotRight.setPower(command);
 
         shootTop.setPower(-0.5);
-        shootBottom.setPower(0);
+        shootBottom.setPower(-0.2);
     }
 
     /**

@@ -79,7 +79,7 @@ public class BlueTeleopMecanumDrive extends LinearOpMode {
             }
             shooter.updateAction();
 
-            telemetry.addData("Target: ", 1400);
+            telemetry.addData("Target: ", 1200);
             telemetry.addData("Shooter Top Actual", shooter.shootTop.getVelocity());
             telemetry.addData("Shooter Bottom Actual", shooter.shootBottom.getVelocity());
             telemetry.addData("Lower", -1);
