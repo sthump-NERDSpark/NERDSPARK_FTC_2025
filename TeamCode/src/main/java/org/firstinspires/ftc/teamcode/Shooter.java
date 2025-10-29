@@ -36,10 +36,6 @@ public class Shooter {
     public final DcMotorEx pivotLeft;
     public final DcMotorEx pivotRight;
     public final AnalogInput potentiometer;
-    public static double kP = 55;
-    public static double kI = 0.6;
-    public static double kD = 0.9;
-    public static double kF = 20;
     private final PID controller = new PID(0.015,0.0001,0);
 
     private final Servo kickLeft;
@@ -132,15 +128,11 @@ public class Shooter {
 
     public void updateAction() {
         switch (currentAction) {
-            case Shoot: {
-                telemetry.addLine("Called shoot");
-                telemetry.update();
-                Shoot(shootOrder.LEFT);
-            }
-            case Intake: Intake();
-            case AlignAndAim: alignAndAim();
-            case AimAndSpinUp: AimAndSpinUp();
-            case AimInPlace: AimInPlace();
+            case Shoot: shoot(); break;
+            case Intake: Intake(); break;
+            case AlignAndAim: alignAndAim(); break;
+            case AimAndSpinUp: AimAndSpinUp(); break;
+            case AimInPlace: AimInPlace(); break;
         }
     }
 
@@ -214,25 +206,27 @@ public class Shooter {
 
         shooterVelocity = r.speed;
 
-//        double command = controller.calculate(70, getPotPosition());
-//        pivotLeft.setPower(command);
-//        pivotRight.setPower(command);
+        double command = controller.calculate(r.angleDeg, getPotPosition());
+        pivotLeft.setPower(command);
+        pivotRight.setPower(command);
 
-//        shootTop.setVelocity(shooterVelocity, AngleUnit.DEGREES);
-//        shootBottom.setVelocity(shooterVelocity, AngleUnit.DEGREES);
+        if (Math.abs(r.angleDeg - getPotPosition()) <= 5) {
+            shootTop.setVelocity(shooterVelocity, AngleUnit.DEGREES);
+            shootBottom.setVelocity(shooterVelocity, AngleUnit.DEGREES);
+        }
 
 //      packet.put("Height error: ", r.error);
     }
 
     public void AimInPlace() {
         // TODO: Tune velocity and position
-        shooterVelocity = 2000;
+        shooterVelocity = 1200;
 
-        double command = controller.calculatePosition(75, getPotPosition());
+        double command = controller.calculatePosition(85, getPotPosition());
         pivotLeft.setPower(command);
         pivotRight.setPower(command);
 
-        if (Math.abs(75 - getPotPosition()) <= 5) {
+        if (Math.abs(85 - getPotPosition()) <= 5) {
             telemetry.addLine("Spinning up wheels");
             shootTop.setVelocity(shooterVelocity);
             shootBottom.setVelocity(shooterVelocity);
@@ -252,7 +246,7 @@ public class Shooter {
     }
 
     private boolean motorsAtVelocity(double target) {
-        double VELOCITY_TOLERANCE = 50;
+        double VELOCITY_TOLERANCE = 75;
 
         double left = shootTop.getVelocity();
         double right = shootBottom.getVelocity();
@@ -272,7 +266,7 @@ public class Shooter {
             // Move the current servo
             servo.setPosition(0.85);
             telemetry.addLine("Moved servo");
-            Wait(1000);
+            Wait(300);
             servo.setPosition(0.65);
             telemetry.update();
             Wait(100);
@@ -354,9 +348,9 @@ public class Shooter {
     }
 
     public void Intake() {
-//        double command = controller.calculate(1, getPotPosition());
-//        pivotLeft.setPower(command);
-//        pivotRight.setPower(command);
+        double command = controller.calculate(1, getPotPosition());
+        pivotLeft.setPower(command);
+        pivotRight.setPower(command);
 
         shootTop.setPower(-0.5);
         shootBottom.setPower(0);

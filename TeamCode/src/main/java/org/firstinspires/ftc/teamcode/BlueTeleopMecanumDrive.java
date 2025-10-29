@@ -56,19 +56,19 @@ public class BlueTeleopMecanumDrive extends LinearOpMode {
             double rx = turnController.calculate(Math.toDegrees(drive.localizer.getPose().heading.toDouble()), commandDegrees);
             telemetry.addData("Motor Command: ", rx);
 
-//            if (gamepad1.b) {
-//                shooter.setAction(Shooter.ShooterActions.AimAndSpinUp);
-//            }
+            if (gamepad1.b) {
+                shooter.setAction(Shooter.ShooterActions.AimAndSpinUp);
+            }
             if (gamepad1.x) {
                 telemetry.addLine("Called shooting function");
                 shooter.setAction(Shooter.ShooterActions.Shoot);
             }
-//            if (gamepad1.a) {
-//                shooter.setAction(Shooter.ShooterActions.AlignAndAim);
-//            }
-//            if (gamepad1.a) {
-//                shooter.setAction(Shooter.ShooterActions.Intake);
-//            }
+            if (gamepad1.a) {
+                shooter.setAction(Shooter.ShooterActions.AlignAndAim);
+            }
+            if (gamepad1.a) {
+                shooter.setAction(Shooter.ShooterActions.Intake);
+            }
             if (gamepad1.right_bumper) {
                 shooter.setAction(Shooter.ShooterActions.AimInPlace);
             }
@@ -79,7 +79,7 @@ public class BlueTeleopMecanumDrive extends LinearOpMode {
             }
             shooter.updateAction();
 
-            telemetry.addData("Target: ", 1000);
+            telemetry.addData("Target: ", 1400);
             telemetry.addData("Shooter Top Actual", shooter.shootTop.getVelocity());
             telemetry.addData("Shooter Bottom Actual", shooter.shootBottom.getVelocity());
             telemetry.addData("Lower", -1);
