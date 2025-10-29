@@ -45,6 +45,7 @@ public class Shooter {
     private final Servo kickLeft;
     private final Servo kickCenter;
     private final Servo kickRight;
+    private int servoCounter = 0;
 
     private final NormalizedColorSensor sensorLeft;
     private final NormalizedColorSensor sensorCenter;
@@ -131,7 +132,11 @@ public class Shooter {
 
     public void updateAction() {
         switch (currentAction) {
-            case Shoot: shoot();
+            case Shoot: {
+                telemetry.addLine("Called shoot");
+                telemetry.update();
+                Shoot(shootOrder.LEFT);
+            }
             case Intake: Intake();
             case AlignAndAim: alignAndAim();
             case AimAndSpinUp: AimAndSpinUp();
@@ -234,60 +239,47 @@ public class Shooter {
         }
     }
 
-    public class Shoot {
-        private static final long TIMEOUT_MS = 5000;
-
-        // Build the servo order dynamically based on order
-        private Servo[] getServoOrder(shootOrder order) {
-            switch (order) {
-                case LEFT: return new Servo[]{kickLeft, kickCenter, kickRight};
-                case CENTER_LEFT: return new Servo[]{kickCenter, kickLeft, kickRight};
-                case CENTER_LAST: return new Servo[]{kickLeft, kickRight, kickCenter};
-                case CENTER_RIGHT: return new Servo[]{kickCenter, kickRight, kickLeft};
-                case RIGHT: return new Servo[]{kickRight, kickLeft, kickCenter};
-            }
-            return new Servo[]{kickLeft, kickCenter, kickRight};
+    // Build the servo order dynamically based on order
+    private Servo[] getServoOrder(shootOrder order) {
+        switch (order) {
+            case LEFT: return new Servo[]{kickLeft, kickCenter, kickRight};
+            case CENTER_LEFT: return new Servo[]{kickCenter, kickLeft, kickRight};
+            case CENTER_LAST: return new Servo[]{kickLeft, kickRight, kickCenter};
+            case CENTER_RIGHT: return new Servo[]{kickCenter, kickRight, kickLeft};
+            case RIGHT: return new Servo[]{kickRight, kickLeft, kickCenter};
         }
+        return new Servo[]{kickLeft, kickCenter, kickRight};
+    }
 
-        private boolean waitUntilVelocityReached(double target) {
-            long start = System.nanoTime();
-            long timeoutNs = TIMEOUT_MS * 1_000_000L;
+    private boolean motorsAtVelocity(double target) {
+        double VELOCITY_TOLERANCE = 50;
 
-            while (true) {
-                if (motorsAtVelocity(target)) return true;
-                if (System.nanoTime() - start > timeoutNs) return false;
-            }
+        double left = shootTop.getVelocity();
+        double right = shootBottom.getVelocity();
+        return Math.abs(left - target) < VELOCITY_TOLERANCE &&
+                Math.abs(right - target) < VELOCITY_TOLERANCE;
+    }
+
+    public void Shoot(shootOrder order) {
+        telemetry.addLine("Started shooting");
+        telemetry.update();
+        Servo[] sequence = getServoOrder(order);
+        telemetry.addData("Servo order: ", sequence);
+
+        // Wait until motors are at target velocity
+        if (motorsAtVelocity(shooterVelocity)) {
+            Servo servo = sequence[servoCounter];
+            // Move the current servo
+            servo.setPosition(0.85);
+            telemetry.addLine("Moved servo");
+            Wait(1000);
+            servo.setPosition(0.65);
+            telemetry.update();
+            Wait(100);
+            servoCounter++;
         }
-
-        private boolean motorsAtVelocity(double target) {
-            double VELOCITY_TOLERANCE = 50;
-
-            double left = shootTop.getVelocity();
-            double right = shootBottom.getVelocity();
-            return Math.abs(left - target) < VELOCITY_TOLERANCE &&
-                    Math.abs(right - target) < VELOCITY_TOLERANCE;
-        }
-
-        public Shoot(shootOrder order) {
-            telemetry.addLine("Started shooting");
-            Servo[] sequence = getServoOrder(order);
-            telemetry.addData("Servo order: ", sequence);
-
-            for (Servo servo : sequence) {
-                // Wait until motors are at target velocity
-                while (!waitUntilVelocityReached(shooterVelocity)) {
-                    telemetry.addLine("Waiting for motors to reach velocity");
-                    servo.setPosition(0.65);
-                }
-
-                // Move the current servo
-                // TODO: Find position
-                servo.setPosition(0.85);
-                telemetry.addLine("Moved servo");
-                Wait(1000);
-                // TODO: Find position
-                servo.setPosition(0.65);
-            }
+        if (servoCounter >= 2) {
+            servoCounter = 0;
         }
     }
 
@@ -312,39 +304,39 @@ public class Shooter {
                         telemetry.addLine("Green ball left");
                         switch (first) {
                             case FIRST:
-                                new Shoot(shootOrder.LEFT);
+                                Shoot(shootOrder.LEFT);
                             case SECOND:
-                                new Shoot(shootOrder.CENTER_LEFT);
+                                Shoot(shootOrder.CENTER_LEFT);
                             case THIRD:
-                                new Shoot(shootOrder.RIGHT);
+                                Shoot(shootOrder.RIGHT);
                         }
                     // Green ball is in center
                     case 1:
                         telemetry.addLine("Green ball center");
                         switch (first) {
                             case FIRST:
-                                new Shoot(shootOrder.CENTER_LEFT);
+                                Shoot(shootOrder.CENTER_LEFT);
                             case SECOND:
-                                new Shoot(shootOrder.LEFT);
+                                Shoot(shootOrder.LEFT);
                             case THIRD:
-                                new Shoot(shootOrder.CENTER_LAST);
+                                Shoot(shootOrder.CENTER_LAST);
                         }
                     // Green ball is in right
                     case 2:
                         telemetry.addLine("Green ball right");
                         switch (first) {
                             case FIRST:
-                                new Shoot(shootOrder.RIGHT);
+                                Shoot(shootOrder.RIGHT);
                             case SECOND:
-                                new Shoot(shootOrder.CENTER_RIGHT);
+                                Shoot(shootOrder.CENTER_RIGHT);
                             case THIRD:
-                                new Shoot(shootOrder.LEFT);
+                                Shoot(shootOrder.LEFT);
                         }
                 }
             }
         }
         telemetry.addLine("Defaulted");
-        new Shoot(shootOrder.LEFT);
+        Shoot(shootOrder.LEFT);
     }
 
     /**

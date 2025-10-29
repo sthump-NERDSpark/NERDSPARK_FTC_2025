@@ -72,6 +72,11 @@ public class BlueTeleopMecanumDrive extends LinearOpMode {
             if (gamepad1.right_bumper) {
                 shooter.setAction(Shooter.ShooterActions.AimInPlace);
             }
+            if (gamepad1.left_bumper) {
+                shooter.shootTop.setVelocity(0);
+                shooter.shootBottom.setVelocity(0);
+                shooter.setAction(Shooter.ShooterActions.Zero);
+            }
             shooter.updateAction();
 
             telemetry.addData("Target: ", 1000);
