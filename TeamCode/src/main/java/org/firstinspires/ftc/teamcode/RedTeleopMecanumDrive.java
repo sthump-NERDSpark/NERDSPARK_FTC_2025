@@ -17,7 +17,7 @@ public class RedTeleopMecanumDrive extends LinearOpMode {
         MecanumDrive drive = new MecanumDrive(hardwareMap, new Pose2d(0,0,0));
         double commandDegrees = 0;
         PID turnController = new PID(0.05, 0, 0.0000001);
-        Shooter shooter = new Shooter(hardwareMap, drive, false);
+        Shooter shooter = new Shooter(hardwareMap, drive, false, telemetry);
 
         waitForStart();
 
@@ -54,13 +54,6 @@ public class RedTeleopMecanumDrive extends LinearOpMode {
             double rx = turnController.calculate(Math.toDegrees(drive.localizer.getPose().heading.toDouble()), commandDegrees);
             telemetry.addData("Motor Command: ", rx);
             telemetry.update();
-
-            // This button choice was made so that it is hard to hit on accident,
-            // it can be freely changed based on preference.
-            // The equivalent button is start on Xbox-style controllers.
-            if (gamepad1.options) {
-                drive.imu.resetYaw();
-            }
 
             if (gamepad1.b) {
                 shooter.setAction(Shooter.ShooterActions.AimAndSpinUp);

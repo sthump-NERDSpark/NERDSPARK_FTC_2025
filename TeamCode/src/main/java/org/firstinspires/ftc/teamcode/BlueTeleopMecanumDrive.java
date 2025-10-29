@@ -1,7 +1,5 @@
 package org.firstinspires.ftc.teamcode;
 
-import static org.firstinspires.ftc.teamcode.Shooter.angleCommand;
-
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.acmerobotics.roadrunner.Pose2d;
@@ -20,9 +18,11 @@ public class BlueTeleopMecanumDrive extends LinearOpMode {
         MecanumDrive drive = new MecanumDrive(hardwareMap, new Pose2d(0,0,0));
         double commandDegrees = 0;
         PID turnController = new PID(0.05, 0, 0.0000001);
-        Shooter shooter = new Shooter(hardwareMap, drive, true);
+        Shooter shooter = new Shooter(hardwareMap, drive, true, telemetry);
+        shooter.setAction(Shooter.ShooterActions.Zero);
         FtcDashboard dashboard = FtcDashboard.getInstance();
         telemetry = new MultipleTelemetry(telemetry, dashboard.getTelemetry());
+        telemetry.clear();
 
         waitForStart();
         if (isStopRequested()) return;
@@ -56,27 +56,27 @@ public class BlueTeleopMecanumDrive extends LinearOpMode {
             double rx = turnController.calculate(Math.toDegrees(drive.localizer.getPose().heading.toDouble()), commandDegrees);
             telemetry.addData("Motor Command: ", rx);
 
-            if (gamepad1.b) {
-                shooter.setAction(Shooter.ShooterActions.AimAndSpinUp);
-            }
+//            if (gamepad1.b) {
+//                shooter.setAction(Shooter.ShooterActions.AimAndSpinUp);
+//            }
             if (gamepad1.x) {
+                telemetry.addLine("Called shooting function");
                 shooter.setAction(Shooter.ShooterActions.Shoot);
             }
-            if (gamepad1.a) {
-                shooter.setAction(Shooter.ShooterActions.AlignAndAim);
-            }
-            if (gamepad1.a) {
-                shooter.setAction(Shooter.ShooterActions.Intake);
-            }
+//            if (gamepad1.a) {
+//                shooter.setAction(Shooter.ShooterActions.AlignAndAim);
+//            }
+//            if (gamepad1.a) {
+//                shooter.setAction(Shooter.ShooterActions.Intake);
+//            }
             if (gamepad1.right_bumper) {
                 shooter.setAction(Shooter.ShooterActions.AimInPlace);
             }
             shooter.updateAction();
 
-            telemetry.addData("Volts", shooter.potentiometer.getVoltage());
-            telemetry.addData("Shooter Target: ", angleCommand);
-            telemetry.addData("Shooter Actual", shooter.getPotPosition());
-            telemetry.addData("Upper", angleCommand + 10);
+            telemetry.addData("Target: ", 1000);
+            telemetry.addData("Shooter Top Actual", shooter.shootTop.getVelocity());
+            telemetry.addData("Shooter Bottom Actual", shooter.shootBottom.getVelocity());
             telemetry.addData("Lower", -1);
             telemetry.update();
 

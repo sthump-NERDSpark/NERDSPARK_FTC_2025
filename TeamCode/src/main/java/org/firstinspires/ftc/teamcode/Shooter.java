@@ -10,8 +10,10 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.JavaUtil;
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.Util.PID;
 
@@ -25,7 +27,7 @@ public class Shooter {
         AimInPlace,
         Zero
     }
-    private ShooterActions currentAction = ShooterActions.Zero;
+    private ShooterActions currentAction;
     private final MecanumDrive Drive;
     private final boolean alliance_blue;
 
@@ -34,10 +36,11 @@ public class Shooter {
     public final DcMotorEx pivotLeft;
     public final DcMotorEx pivotRight;
     public final AnalogInput potentiometer;
-    public static double angleCommand = 60;
-    public static double kP = 0;
-    public static double kI = 0;
-    public static double kD = 0;
+    public static double kP = 55;
+    public static double kI = 0.6;
+    public static double kD = 0.9;
+    public static double kF = 20;
+    private final PID controller = new PID(0.015,0.0001,0);
 
     private final Servo kickLeft;
     private final Servo kickCenter;
@@ -78,14 +81,12 @@ public class Shooter {
 
     private static final Vector2d blueGoalPose = new Vector2d(63,-55);
     private static final Vector2d redGoalPose = new Vector2d(63,55);
+    private final Telemetry telemetry;
 
-    /**
-     * Remember to STOP_AND_RESET the pivot encoders in auto init but not in teleop due to the possibility
-     * that the starting position may not be exact
-     */
-    public Shooter(HardwareMap hardwareMap,MecanumDrive drive,boolean alliance) {
+    public Shooter(HardwareMap hardwareMap,MecanumDrive drive,boolean alliance, Telemetry telemetry) {
         this.Drive = drive;
         this.alliance_blue = alliance;
+        this.telemetry = telemetry;
 
         shootTop = hardwareMap.get(DcMotorEx.class, "shootTop");
         shootBottom = hardwareMap.get(DcMotorEx.class, "shootBottom");
@@ -105,6 +106,8 @@ public class Shooter {
 
         shootTop.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         shootBottom.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        shootTop.setDirection(DcMotorSimple.Direction.FORWARD);
+        shootBottom.setDirection(DcMotorSimple.Direction.FORWARD);
         shootTop.setVelocityPIDFCoefficients(55,0.6,0.9,20);
         shootBottom.setVelocityPIDFCoefficients(55,0.6,0.9,20);
 
@@ -133,14 +136,13 @@ public class Shooter {
             case AlignAndAim: alignAndAim();
             case AimAndSpinUp: AimAndSpinUp();
             case AimInPlace: AimInPlace();
-            case Zero: Zero();
         }
     }
 
     public double getPotPosition() {
         double currVolts = potentiometer.getVoltage();
         double position = ((270*currVolts+445.5)-Math.sqrt(Math.pow(270*currVolts+445.5, 2) + 4*currVolts*(36450*currVolts-120285)))/(2*currVolts);
-        return position - 24.7328;
+        return position - 27.0848;
     }
 
     /**
@@ -211,26 +213,22 @@ public class Shooter {
 //        pivotLeft.setPower(command);
 //        pivotRight.setPower(command);
 
-        shootTop.setDirection(DcMotorSimple.Direction.FORWARD);
-        shootBottom.setDirection(DcMotorSimple.Direction.FORWARD);
-        shootTop.setVelocity(shooterVelocity, AngleUnit.DEGREES);
-        shootBottom.setVelocity(shooterVelocity, AngleUnit.DEGREES);
+//        shootTop.setVelocity(shooterVelocity, AngleUnit.DEGREES);
+//        shootBottom.setVelocity(shooterVelocity, AngleUnit.DEGREES);
 
 //      packet.put("Height error: ", r.error);
     }
 
     public void AimInPlace() {
         // TODO: Tune velocity and position
-        shooterVelocity = 1000;
+        shooterVelocity = 2000;
 
-        PID controller = new PID(kP,kI,kD);
-        double command = controller.calculatePosition(angleCommand, getPotPosition());
+        double command = controller.calculatePosition(75, getPotPosition());
         pivotLeft.setPower(command);
         pivotRight.setPower(command);
 
-        if (Math.abs(angleCommand - pivotLeft.getCurrentPosition()) <= 5) {
-            shootTop.setDirection(DcMotorSimple.Direction.FORWARD);
-            shootBottom.setDirection(DcMotorSimple.Direction.FORWARD);
+        if (Math.abs(75 - getPotPosition()) <= 5) {
+            telemetry.addLine("Spinning up wheels");
             shootTop.setVelocity(shooterVelocity);
             shootBottom.setVelocity(shooterVelocity);
         }
@@ -271,20 +269,22 @@ public class Shooter {
         }
 
         public Shoot(shootOrder order) {
+            telemetry.addLine("Started shooting");
             Servo[] sequence = getServoOrder(order);
-//            packet.put("Servo order:", sequence);
+            telemetry.addData("Servo order: ", sequence);
 
             for (Servo servo : sequence) {
                 // Wait until motors are at target velocity
                 while (!waitUntilVelocityReached(shooterVelocity)) {
-//                    packet.put("Timeout waiting for motors before moving servo.", true);
+                    telemetry.addLine("Waiting for motors to reach velocity");
                     servo.setPosition(0.65);
                 }
 
                 // Move the current servo
                 // TODO: Find position
                 servo.setPosition(0.85);
-//                packet.put("Moved servo to position ", true);
+                telemetry.addLine("Moved servo");
+                Wait(1000);
                 // TODO: Find position
                 servo.setPosition(0.65);
             }
@@ -296,6 +296,7 @@ public class Shooter {
      * Has code for limelight
      */
     public void shoot() { // @NonNull LimelightManager ll, boolean alliance_blue
+        telemetry.addLine("Start shooting process");
         greenShot first = greenShot.FIRST; // ll.getOrder(alliance_blue);
         double[] hues = {
                 JavaUtil.colorToHue(sensorLeft.getNormalizedColors().toColor()),
@@ -303,10 +304,12 @@ public class Shooter {
                 JavaUtil.colorToHue(sensorRight.getNormalizedColors().toColor())
         };
         for (int i = 0; i < hues.length; i++) {
+            telemetry.addLine("Entered for loop");
             if (hues[i] >= 79f && hues[i] <= 139f) {
                 switch (i) {
                     // Green ball is in left
                     case 0:
+                        telemetry.addLine("Green ball left");
                         switch (first) {
                             case FIRST:
                                 new Shoot(shootOrder.LEFT);
@@ -317,6 +320,7 @@ public class Shooter {
                         }
                     // Green ball is in center
                     case 1:
+                        telemetry.addLine("Green ball center");
                         switch (first) {
                             case FIRST:
                                 new Shoot(shootOrder.CENTER_LEFT);
@@ -327,6 +331,7 @@ public class Shooter {
                         }
                     // Green ball is in right
                     case 2:
+                        telemetry.addLine("Green ball right");
                         switch (first) {
                             case FIRST:
                                 new Shoot(shootOrder.RIGHT);
@@ -338,6 +343,7 @@ public class Shooter {
                 }
             }
         }
+        telemetry.addLine("Defaulted");
         new Shoot(shootOrder.LEFT);
     }
 
@@ -364,14 +370,16 @@ public class Shooter {
         shootBottom.setPower(0);
     }
 
-    private void Zero() {
-        shootTop.setVelocity(0);
-        shootBottom.setVelocity(0);
-//        double command = controller.calculate(2, getPotPosition());
-//        pivotLeft.setPower(command);
-//        pivotRight.setPower(command);
-        kickLeft.setPosition(0.65);
-        kickCenter.setPosition(0.65);
-        kickRight.setPosition(0.65);
+    /**
+     * Time should be in milliseconds
+     */
+    private void Wait(double time) {
+        ElapsedTime timer = new ElapsedTime();
+
+        while (true) {
+            if (timer.milliseconds() >= time) {
+                break;
+            }
+        }
     }
 }

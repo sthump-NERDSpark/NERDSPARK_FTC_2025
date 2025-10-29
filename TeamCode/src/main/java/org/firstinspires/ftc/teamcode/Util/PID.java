@@ -96,7 +96,7 @@ public class PID {
         double dt = currentTime - lastTime;
         lastTime = currentTime;
 
-        boolean setPointIsNotReached = !(Math.abs(position - reference) < 1);
+        boolean setPointIsNotReached = !(Math.abs(position - reference) < 0.5);
 
         if (setPointIsNotReached) {
             // calculate the error
@@ -105,7 +105,7 @@ public class PID {
             double errorChange = (error - lastError);
 
             // filter out high frequency noise to increase derivative performance
-            double a = 0.8; // a can be anything from 0 < a < 1
+            double a = 0.6; // a can be anything from 0 < a < 1
             double currentFilterEstimate = (a * previousFilterEstimate) + (1- a) * errorChange;
             previousFilterEstimate = currentFilterEstimate;
 
