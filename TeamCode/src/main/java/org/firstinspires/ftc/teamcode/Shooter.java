@@ -139,7 +139,7 @@ public class Shooter {
     public double getPotPosition() {
         double currVolts = potentiometer.getVoltage();
         double position = ((270*currVolts+445.5)-Math.sqrt(Math.pow(270*currVolts+445.5, 2) + 4*currVolts*(36450*currVolts-120285)))/(2*currVolts);
-        return position - 27.0848;
+        return position - 83.6796;
     }
 
     /**
@@ -222,11 +222,11 @@ public class Shooter {
         // TODO: Tune velocity and position
         shooterVelocity = 1200;
 
-        double command = controller.calculatePosition(90, getPotPosition());
+        double command = controller.calculatePosition(110, getPotPosition());
         pivotLeft.setPower(command);
         pivotRight.setPower(command);
 
-        if (Math.abs(90 - getPotPosition()) <= 5) {
+        if (Math.abs(110 - getPotPosition()) <= 5) {
             telemetry.addLine("Spinning up wheels");
             shootTop.setVelocity(shooterVelocity+4000);
             shootBottom.setVelocity(shooterVelocity);
@@ -266,10 +266,10 @@ public class Shooter {
             // Move the current servo
             servo.setPosition(0.85);
             telemetry.addLine("Moved servo");
-            Wait(500);
+            Wait(750);
             servo.setPosition(0.65);
             telemetry.update();
-            Wait(100);
+            Wait(250);
             servoCounter++;
         }
         if (servoCounter > 2) {
@@ -349,12 +349,12 @@ public class Shooter {
     }
 
     public void Intake() {
-        double command = controller.calculatePosition(0, getPotPosition());
+        double command = controller.calculatePosition(-7, getPotPosition());
         pivotLeft.setPower(command);
         pivotRight.setPower(command);
 
-        shootTop.setPower(-0.5);
-        shootBottom.setPower(-0.2);
+        shootTop.setPower(-0.75);
+        shootBottom.setPower(0);
     }
 
     /**

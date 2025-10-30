@@ -56,26 +56,28 @@ public class BlueTeleopMecanumDrive extends LinearOpMode {
             double rx = turnController.calculate(Math.toDegrees(drive.localizer.getPose().heading.toDouble()), commandDegrees);
             telemetry.addData("Motor Command: ", rx);
 
-            if (gamepad1.b) {
-                shooter.setAction(Shooter.ShooterActions.AimAndSpinUp);
-            }
-            if (gamepad1.x) {
-                telemetry.addLine("Called shooting function");
+//            if (gamepad1.b) {
+//                shooter.setAction(Shooter.ShooterActions.AimAndSpinUp);
+//            }
+            if (gamepad2.x) {
                 shooter.setAction(Shooter.ShooterActions.Shoot);
             }
-            if (gamepad1.a) {
-                shooter.setAction(Shooter.ShooterActions.AlignAndAim);
-            }
+//            if (gamepad1.a) {
+//                shooter.setAction(Shooter.ShooterActions.AlignAndAim);
+//            }
             if (gamepad1.a) {
                 shooter.setAction(Shooter.ShooterActions.Intake);
             }
-            if (gamepad1.right_bumper) {
+            if (gamepad2.b) {
                 shooter.setAction(Shooter.ShooterActions.AimInPlace);
             }
-            if (gamepad1.left_bumper) {
+            if (gamepad2.right_bumper) {
                 shooter.shootTop.setVelocity(0);
                 shooter.shootBottom.setVelocity(0);
                 shooter.setAction(Shooter.ShooterActions.Zero);
+            }
+            if (gamepad2.y) {
+                commandDegrees = -60;
             }
             shooter.updateAction();
 
