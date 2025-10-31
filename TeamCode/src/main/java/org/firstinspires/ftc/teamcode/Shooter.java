@@ -44,7 +44,7 @@ public class Shooter {
     private final Servo kickCenter;
     private final Servo kickRight;
     private int servoCounter = 0;
-    private final Servo park;
+//    private final Servo park;
 
     private final NormalizedColorSensor sensorLeft;
     private final NormalizedColorSensor sensorCenter;
@@ -114,9 +114,9 @@ public class Shooter {
         kickLeft = hardwareMap.get(Servo.class, "leftKick");
         kickCenter = hardwareMap.get(Servo.class, "centerKick");
         kickRight = hardwareMap.get(Servo.class, "rightKick");
-        park = hardwareMap.get(Servo.class, "park");
+//        park = hardwareMap.get(Servo.class, "park");
         // TODO
-        park.setPosition(0);
+//        park.setPosition(0);
 
         // Uncomment if needed
         kickLeft.setDirection(Servo.Direction.FORWARD);
@@ -378,7 +378,7 @@ public class Shooter {
         pivotRight.setPower(0);
         Wait(250);
         // TODO
-        park.setPosition(0.1);
+//        park.setPosition(0.1);
     }
 
     /**
