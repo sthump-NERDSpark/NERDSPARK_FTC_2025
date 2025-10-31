@@ -19,7 +19,7 @@ public class BlueTeleopMecanumDrive extends LinearOpMode {
         double commandDegrees = 0;
         PID turnController = new PID(0.05, 0, 0.0000001);
         Shooter shooter = new Shooter(hardwareMap, drive, true, telemetry);
-        shooter.setAction(Shooter.ShooterActions.Zero);
+        shooter.setAction(Shooter.ShooterActions.NoAction);
         FtcDashboard dashboard = FtcDashboard.getInstance();
         telemetry = new MultipleTelemetry(telemetry, dashboard.getTelemetry());
         telemetry.clear();
@@ -72,19 +72,19 @@ public class BlueTeleopMecanumDrive extends LinearOpMode {
                 shooter.setAction(Shooter.ShooterActions.AimInPlace);
             }
             if (gamepad2.right_bumper) {
-                shooter.shootTop.setVelocity(0);
-                shooter.shootBottom.setVelocity(0);
-                shooter.setAction(Shooter.ShooterActions.Zero);
+                shooter.setAction(Shooter.ShooterActions.ZeroPower);
             }
             if (gamepad2.y) {
                 commandDegrees = -60;
+            }
+            if (gamepad2.left_bumper) {
+                shooter.setAction(Shooter.ShooterActions.Park);
             }
             shooter.updateAction();
 
             telemetry.addData("Target: ", 1200);
             telemetry.addData("Shooter Top Actual", shooter.shootTop.getVelocity());
             telemetry.addData("Shooter Bottom Actual", shooter.shootBottom.getVelocity());
-            telemetry.addData("Lower", -1);
             telemetry.update();
 
             drive.localizer.update();

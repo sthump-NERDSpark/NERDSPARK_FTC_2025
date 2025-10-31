@@ -25,7 +25,9 @@ public class Shooter {
         Shoot,
         AimAndSpinUp,
         AimInPlace,
-        Zero
+        ZeroPower,
+        Park,
+        NoAction
     }
     private ShooterActions currentAction;
     private final MecanumDrive Drive;
@@ -33,15 +35,16 @@ public class Shooter {
 
     public final DcMotorEx shootTop;
     public final DcMotorEx shootBottom;
-    public final DcMotorEx pivotLeft;
-    public final DcMotorEx pivotRight;
-    public final AnalogInput potentiometer;
+    private final DcMotorEx pivotLeft;
+    private final DcMotorEx pivotRight;
+    private final AnalogInput potentiometer;
     private final PID controller = new PID(0.015,0.0002,0);
 
     private final Servo kickLeft;
     private final Servo kickCenter;
     private final Servo kickRight;
     private int servoCounter = 0;
+    private final Servo park;
 
     private final NormalizedColorSensor sensorLeft;
     private final NormalizedColorSensor sensorCenter;
@@ -111,6 +114,9 @@ public class Shooter {
         kickLeft = hardwareMap.get(Servo.class, "leftKick");
         kickCenter = hardwareMap.get(Servo.class, "centerKick");
         kickRight = hardwareMap.get(Servo.class, "rightKick");
+        park = hardwareMap.get(Servo.class, "park");
+        // TODO
+        park.setPosition(0);
 
         // Uncomment if needed
         kickLeft.setDirection(Servo.Direction.FORWARD);
@@ -133,6 +139,8 @@ public class Shooter {
             case AlignAndAim: alignAndAim(); break;
             case AimAndSpinUp: AimAndSpinUp(); break;
             case AimInPlace: AimInPlace(); break;
+            case ZeroPower: ZeroPower(); break;
+            case Park: Park(); break;
         }
     }
 
@@ -193,7 +201,7 @@ public class Shooter {
      * Uses odo position
      * Can be changed to use limelight distance to tag
      */
-    public void AimAndSpinUp() { // @NonNull LimelightManager ll,
+    private void AimAndSpinUp() { // @NonNull LimelightManager ll,
         // Vector2d vect = ll.getDistance();
         this.Drive.localizer.update();
 
@@ -218,8 +226,7 @@ public class Shooter {
 //      packet.put("Height error: ", r.error);
     }
 
-    public void AimInPlace() {
-        // TODO: Tune velocity and position
+    private void AimInPlace() {
         shooterVelocity = 1200;
 
         double command = controller.calculatePosition(110, getPotPosition());
@@ -254,7 +261,7 @@ public class Shooter {
                 Math.abs(bottom - target) < VELOCITY_TOLERANCE;
     }
 
-    public void Shoot(shootOrder order) {
+    private void Shoot(shootOrder order) {
         telemetry.addLine("Started shooting");
         telemetry.update();
         Servo[] sequence = getServoOrder(order);
@@ -282,7 +289,7 @@ public class Shooter {
      * This action shoots the balls in a specified order
      * Has code for limelight
      */
-    public void shoot() { // @NonNull LimelightManager ll, boolean alliance_blue
+    private void shoot() { // @NonNull LimelightManager ll, boolean alliance_blue
         telemetry.addLine("Start shooting process");
         greenShot first = greenShot.FIRST; // ll.getOrder(alliance_blue);
         double[] hues = {
@@ -339,7 +346,7 @@ public class Shooter {
      * Can take currPose from limelight or odo
      * Can be changed to use limelight distance to tag
      */
-    public void alignAndAim() {
+    private void alignAndAim() {
         this.Drive.localizer.update();
         //Target X - actual X, target Y - actual Y
         double heading = Math.atan2((this.alliance_blue? blueGoalPose.x : redGoalPose.x) - this.Drive.localizer.getPose().position.x,
@@ -348,13 +355,30 @@ public class Shooter {
         AimAndSpinUp();
     }
 
-    public void Intake() {
+    private void Intake() {
         double command = controller.calculatePosition(-7, getPotPosition());
         pivotLeft.setPower(command);
         pivotRight.setPower(command);
 
         shootTop.setPower(-0.75);
         shootBottom.setPower(0);
+    }
+
+    private void ZeroPower() {
+        shootTop.setVelocity(0);
+        shootBottom.setVelocity(0);
+        pivotLeft.setPower(0);
+        pivotRight.setPower(0);
+    }
+
+    private void Park() {
+        shootTop.setVelocity(0);
+        shootBottom.setVelocity(0);
+        pivotLeft.setPower(0);
+        pivotRight.setPower(0);
+        Wait(250);
+        // TODO
+        park.setPosition(0.1);
     }
 
     /**
