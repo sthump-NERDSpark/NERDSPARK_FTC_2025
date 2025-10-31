@@ -12,14 +12,16 @@ public class Shooter {
         Intake,
         SpinUpWheels,
         Shoot,
-        Zero
+        ShooterOFF,
+        IntakeOFF,
+        NoAction
     }
-    private ShooterActions currentAction = ShooterActions.Zero;
+    private ShooterActions currentAction = ShooterActions.NoAction;
 
     public final DcMotorEx shootLeft;
     public final DcMotorEx shootRight;
-    public final DcMotorEx intake;
-    public final DcMotorEx conveyor;
+    private final DcMotorEx intake;
+    private final DcMotorEx conveyor;
 
     private final Servo servo;
 
@@ -51,6 +53,8 @@ public class Shooter {
             case Shoot: Shoot(); break;
             case SpinUpWheels: SpinUpWheels(); break;
             case Intake: Intake(); break;
+            case ShooterOFF: ShooterOff(); break;
+            case IntakeOFF: IntakeOff(); break;
         }
    }
 
@@ -70,9 +74,9 @@ public class Shooter {
         shootRight.setVelocity(1000);
 
         servo.setPosition(0.116);
-        Wait(1500);
+        Wait(1250);
         servo.setPosition(0.187);
-        Wait(1500);
+        Wait(2000);
         servo.setPosition(0.24);
         Wait(750);
         servo.setPosition(0.05);
@@ -89,6 +93,16 @@ public class Shooter {
 
         conveyor.setPower(1);
         intake.setPower(1);
+    }
+
+    private void ShooterOff() {
+        shootLeft.setVelocity(0);
+        shootRight.setVelocity(0);
+    }
+
+    private void IntakeOff() {
+        intake.setPower(0);
+        conveyor.setPower(0);
     }
 
     /**

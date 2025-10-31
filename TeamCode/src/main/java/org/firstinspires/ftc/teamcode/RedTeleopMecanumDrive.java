@@ -11,7 +11,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.Util.PID;
 
 @TeleOp(name = "Red Teleop for Mecanum Drive", group = "Robot")
-public class RedTeleopMacanumDrive extends LinearOpMode {
+public class RedTeleopMecanumDrive extends LinearOpMode {
     @Override
     public void runOpMode() {
         // Change new Pose2d to match where you start out of auto
@@ -27,14 +27,22 @@ public class RedTeleopMacanumDrive extends LinearOpMode {
         if (isStopRequested()) return;
 
         while (opModeIsActive()) {
-            double y = -(gamepad1.right_stick_y * 0.5); // Remember, Y stick value is reversed
-            double x = -(gamepad1.right_stick_x * 0.5);
+            double y = -(gamepad1.right_stick_y * 0.6); // Remember, Y stick value is reversed
+            double x = -(gamepad1.right_stick_x * 0.6);
             //double rx = gamepad1.left_stick_x;
 
             if (gamepad1.left_stick_x > 0.15) {
-                commandDegrees -= 0.5;
+                if (gamepad1.left_bumper) {
+                    commandDegrees += 5;
+                } else {
+                    commandDegrees += 0.5;
+                }
             } else if (gamepad1.left_stick_x < -0.15) {
-                commandDegrees += 0.5;
+                if (gamepad1.left_bumper) {
+                    commandDegrees -= 5;
+                } else {
+                    commandDegrees -= 0.5;
+                }
             }
 
             if(gamepad1.dpad_down) {
@@ -67,9 +75,10 @@ public class RedTeleopMacanumDrive extends LinearOpMode {
                 shooter.setAction(Shooter.ShooterActions.Intake);
             }
             if (gamepad2.right_bumper) {
-                shooter.intake.setPower(0);
-                shooter.conveyor.setPower(0);
-                shooter.setAction(Shooter.ShooterActions.Zero);
+                shooter.setAction(Shooter.ShooterActions.ShooterOFF);
+            }
+            if (gamepad2.left_bumper) {
+                shooter.setAction(Shooter.ShooterActions.IntakeOFF);
             }
             if (gamepad2.y) {
                 commandDegrees = 45;
@@ -78,8 +87,6 @@ public class RedTeleopMacanumDrive extends LinearOpMode {
 
             telemetry.addData("Shooter left velo", shooter.shootLeft.getVelocity());
             telemetry.addData("Shooter right velo", shooter.shootRight.getVelocity());
-            telemetry.addData("Lower",0);
-            telemetry.addData("Upper", 1000);
             telemetry.update();
 
             drive.updatePoseEstimate();
