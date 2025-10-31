@@ -18,7 +18,7 @@ public class RedTeleopMecanumDrive extends LinearOpMode {
         MecanumDrive drive = new MecanumDrive(hardwareMap, new Pose2d(0,0,0));
         double commandDegrees = 0;
         PID turnController = new PID(0.05, 0, 0.0000001);
-        Shooter shooter = new Shooter(hardwareMap, drive, true, telemetry);
+        Shooter shooter = new Shooter(hardwareMap, drive, false, telemetry);
         shooter.setAction(Shooter.ShooterActions.NoAction);
         FtcDashboard dashboard = FtcDashboard.getInstance();
         telemetry = new MultipleTelemetry(telemetry, dashboard.getTelemetry());
