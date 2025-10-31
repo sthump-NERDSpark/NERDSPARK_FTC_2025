@@ -74,9 +74,9 @@ public class Shooter {
         shootRight.setVelocity(1000);
 
         servo.setPosition(0.116);
-        Wait(1250);
+        Wait(1500);
         servo.setPosition(0.187);
-        Wait(2000);
+        Wait(2500);
         servo.setPosition(0.24);
         Wait(750);
         servo.setPosition(0.05);
