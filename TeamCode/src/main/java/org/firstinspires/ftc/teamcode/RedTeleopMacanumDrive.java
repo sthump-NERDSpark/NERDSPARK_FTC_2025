@@ -66,6 +66,11 @@ public class RedTeleopMacanumDrive extends LinearOpMode {
             if (gamepad2.b) {
                 shooter.setAction(Shooter.ShooterActions.Intake);
             }
+            if (gamepad2.right_bumper) {
+                shooter.intake.setPower(0);
+                shooter.conveyor.setPower(0);
+                shooter.setAction(Shooter.ShooterActions.Zero);
+            }
             if (gamepad2.y) {
                 commandDegrees = 45;
             }

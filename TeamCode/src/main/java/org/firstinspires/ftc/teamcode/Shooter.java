@@ -18,8 +18,8 @@ public class Shooter {
 
     public final DcMotorEx shootLeft;
     public final DcMotorEx shootRight;
-    private final DcMotorEx intake;
-    private final DcMotorEx conveyor;
+    public final DcMotorEx intake;
+    public final DcMotorEx conveyor;
 
     private final Servo servo;
 
@@ -57,8 +57,8 @@ public class Shooter {
     private void SpinUpWheels() {
         shootLeft.setVelocityPIDFCoefficients(100,0.05,0,13);
         shootRight.setVelocityPIDFCoefficients(100,0.05,0,13);
-        shootLeft.setVelocity(900);
-        shootRight.setVelocity(900);
+        shootLeft.setVelocity(1000);
+        shootRight.setVelocity(1000);
     }
 
     private void Shoot() {
@@ -66,8 +66,8 @@ public class Shooter {
         conveyor.setPower(1);
         shootLeft.setVelocityPIDFCoefficients(100,0.05,0,13);
         shootRight.setVelocityPIDFCoefficients(100,0.05,0,13);
-        shootLeft.setVelocity(900);
-        shootRight.setVelocity(900);
+        shootLeft.setVelocity(1000);
+        shootRight.setVelocity(1000);
 
         servo.setPosition(0.116);
         Wait(1500);
