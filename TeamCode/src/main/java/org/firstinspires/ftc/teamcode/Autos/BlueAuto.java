@@ -1,0 +1,49 @@
+package org.firstinspires.ftc.teamcode.Autos;
+
+import com.acmerobotics.roadrunner.Pose2d;
+import com.acmerobotics.roadrunner.PoseVelocity2d;
+import com.acmerobotics.roadrunner.Vector2d;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.util.ElapsedTime;
+
+import org.firstinspires.ftc.teamcode.MecanumDrive;
+import org.firstinspires.ftc.teamcode.Shooter;
+import org.firstinspires.ftc.teamcode.Util.PID;
+
+@Autonomous(name = "Blue Auton", preselectTeleOp = "BlueTeleopMecanumDrive")
+public class BlueAuto extends LinearOpMode {
+    @Override
+    public void runOpMode() {
+        MecanumDrive drive = new MecanumDrive(hardwareMap, new Pose2d(0,0,0));
+        double commandDegrees = 0;
+        PID turnController = new PID(0.02, 0, 0.0000001);
+        Shooter shooter = new Shooter(hardwareMap, drive, true, telemetry);
+        shooter.setAction(Shooter.ShooterActions.NoAction);
+        double x;
+        double y;
+        ElapsedTime timer = new ElapsedTime();
+        waitForStart();
+        if (isStopRequested()) return;
+        while (opModeIsActive()) {
+            if (timer.milliseconds() > 750) {
+                x = 0;
+                y = 0;
+            } else {
+                x = -1;
+                y = 0;
+            }
+            double rx = turnController.calculate(Math.toDegrees(drive.localizer.getPose().heading.toDouble()), commandDegrees);
+            drive.localizer.update();
+            double botHeading = drive.localizer.getPose().heading.toDouble();
+
+            // Rotate the movement direction counter to the bot's rotation
+            double rotX = x * Math.cos(-botHeading) - y * Math.sin(botHeading);
+            double rotY = x * Math.sin(botHeading) + y * Math.cos(-botHeading);
+
+            rotX = rotX * 1.1;  // Counteract imperfect strafing
+
+            drive.setDrivePowers(new PoseVelocity2d(new Vector2d(rotY, rotX), rx));
+        }
+    }
+}

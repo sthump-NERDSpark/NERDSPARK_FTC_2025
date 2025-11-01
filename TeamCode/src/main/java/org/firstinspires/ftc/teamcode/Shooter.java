@@ -21,10 +21,12 @@ import org.firstinspires.ftc.teamcode.Util.PID;
 public class Shooter {
     public enum ShooterActions {
         Intake,
+        IntakeHuman,
         AlignAndAim,
         Shoot,
         AimAndSpinUp,
-        AimInPlace,
+        AimInPlaceFar,
+        AimInPLaceClose,
         ZeroPower,
         Park,
         NoAction
@@ -52,6 +54,8 @@ public class Shooter {
 
     // FOR SHOOTING
     private double shooterVelocity;
+    private double shooterBottomVelocity;
+    private double shooterTopVelocity;
 
     // FOR CHOOSING BALL ORDER
     public enum shootOrder {
@@ -136,9 +140,11 @@ public class Shooter {
         switch (currentAction) {
             case Shoot: shoot(); break;
             case Intake: Intake(); break;
-            case AlignAndAim: alignAndAim(); break;
-            case AimAndSpinUp: AimAndSpinUp(); break;
-            case AimInPlace: AimInPlace(); break;
+            case IntakeHuman: IntakeHuman(); break;
+//            case AlignAndAim: alignAndAim(); break;
+//            case AimAndSpinUp: AimAndSpinUp(); break;
+            case AimInPlaceFar: AimInPlaceFar(); break;
+            case AimInPLaceClose: AimInPlaceClose(); break;
             case ZeroPower: ZeroPower(); break;
             case Park: Park(); break;
         }
@@ -154,80 +160,81 @@ public class Shooter {
      * MAKE SURE ALL UNITS ARE IN FT, FT/S^2
      * Currently runs on robot pose and goal pose but can be changed to use limelight distance plus some
      */
-    private static Result findBestShot(
-            double xStart, double yStart,
-            double xEnd, double yEnd, // Can replace these with limelight distance to tag plus some
-            // double ll_dx, double ll_dy
-            int minAngle, double maxAngle, double angleHorizontal,
-            double minSpeed, double maxSpeed,
-            int angleStep, double speedStep) {
-
-        double dx = xEnd - xStart; // Can replace with limelight distance to tag plus some
-        // double dx = ll_dx + 5; // Need to find offset
-        double dy = yEnd - yStart; // Can replace with limelight distance to tag plus some
-        // double dy = ll_dy + 5 // Need to find offset
-
-        double bestError = Double.MAX_VALUE;
-        Result best = new Result();
-
-        for (int angle = minAngle; angle <= maxAngle; angle += angleStep) {
-            // Convert to radians relative to horizontal
-            double theta = Math.toRadians(angle - angleHorizontal);
-
-            for (double v = minSpeed; v <= maxSpeed; v += speedStep) {
-                double yPred = dx * Math.tan(theta)
-                        - (G_ft * dx * dx) / (2 * v * v * Math.cos(theta) * Math.cos(theta));
-
-                double error = Math.abs(yPred - dy);
-
-                if (error < bestError) {
-                    bestError = error;
-                    best.angleDeg = angle;
-                    best.error = error;
-
-                    // Convert ball linear speed to wheel angular speed
-                    double radius = 0.0508 / 2.0;
-                    double omegaRadPerSec = v / radius;
-                    best.speed = omegaRadPerSec * (180.0 / Math.PI);
-                }
-            }
-        }
-
-        return best;
-    }
+//    private static Result findBestShot(
+//            double xStart, double yStart,
+//            double xEnd, double yEnd, // Can replace these with limelight distance to tag plus some
+//            // double ll_dx, double ll_dy
+//            int minAngle, double maxAngle, double angleHorizontal,
+//            double minSpeed, double maxSpeed,
+//            int angleStep, double speedStep) {
+//
+//        double dx = xEnd - xStart; // Can replace with limelight distance to tag plus some
+//        // double dx = ll_dx + 5; // Need to find offset
+//        double dy = yEnd - yStart; // Can replace with limelight distance to tag plus some
+//        // double dy = ll_dy + 5 // Need to find offset
+//
+//        double bestError = Double.MAX_VALUE;
+//        Result best = new Result();
+//
+//        for (int angle = minAngle; angle <= maxAngle; angle += angleStep) {
+//            // Convert to radians relative to horizontal
+//            double theta = Math.toRadians(angle - angleHorizontal);
+//
+//            for (double v = minSpeed; v <= maxSpeed; v += speedStep) {
+//                double yPred = dx * Math.tan(theta)
+//                        - (G_ft * dx * dx) / (2 * v * v * Math.cos(theta) * Math.cos(theta));
+//
+//                double error = Math.abs(yPred - dy);
+//
+//                if (error < bestError) {
+//                    bestError = error;
+//                    best.angleDeg = angle;
+//                    best.error = error;
+//
+//                    // Convert ball linear speed to wheel angular speed
+//                    double radius = 0.0508 / 2.0;
+//                    double omegaRadPerSec = v / radius;
+//                    best.speed = omegaRadPerSec * (180.0 / Math.PI);
+//                }
+//            }
+//        }
+//
+//        return best;
+//    }
 
     /**
      * This action aims the shooter and spins up the motors
      * Uses odo position
      * Can be changed to use limelight distance to tag
      */
-    private void AimAndSpinUp() { // @NonNull LimelightManager ll,
-        // Vector2d vect = ll.getDistance();
-        this.Drive.localizer.update();
+//    private void AimAndSpinUp() { // @NonNull LimelightManager ll,
+//        // Vector2d vect = ll.getDistance();
+//        this.Drive.localizer.update();
+//
+//        Result r = findBestShot(this.Drive.localizer.getPose().position.x + 0,
+//                this.Drive.localizer.getPose().position.y + 0,
+//                this.alliance_blue? blueGoalPose.x : redGoalPose.x, this.alliance_blue? blueGoalPose.y : redGoalPose.y,
+//                // vect.x, vect.y,
+//                1, 75, 40, 375, 1400,
+//                5, 25);
+//
+//        shooterVelocity = r.speed;
+//
+//        double command = controller.calculate(r.angleDeg, getPotPosition());
+//        pivotLeft.setPower(command);
+//        pivotRight.setPower(command);
+//
+//        if (Math.abs(r.angleDeg - getPotPosition()) <= 5) {
+//            shootTop.setVelocity(shooterVelocity, AngleUnit.DEGREES);
+//            shootBottom.setVelocity(shooterVelocity, AngleUnit.DEGREES);
+//        }
+//
+////      packet.put("Height error: ", r.error);
+//    }
 
-        Result r = findBestShot(this.Drive.localizer.getPose().position.x + 0,
-                this.Drive.localizer.getPose().position.y + 0,
-                this.alliance_blue? blueGoalPose.x : redGoalPose.x, this.alliance_blue? blueGoalPose.y : redGoalPose.y,
-                // vect.x, vect.y,
-                1, 75, 40, 375, 1400,
-                5, 25);
-
-        shooterVelocity = r.speed;
-
-        double command = controller.calculate(r.angleDeg, getPotPosition());
-        pivotLeft.setPower(command);
-        pivotRight.setPower(command);
-
-        if (Math.abs(r.angleDeg - getPotPosition()) <= 5) {
-            shootTop.setVelocity(shooterVelocity, AngleUnit.DEGREES);
-            shootBottom.setVelocity(shooterVelocity, AngleUnit.DEGREES);
-        }
-
-//      packet.put("Height error: ", r.error);
-    }
-
-    private void AimInPlace() {
-        shooterVelocity = 1200;
+    private void AimInPlaceFar() {
+        shooterBottomVelocity = 1200;
+        shooterTopVelocity = 1600;
 
         double command = controller.calculatePosition(110, getPotPosition());
         pivotLeft.setPower(command);
@@ -235,8 +242,22 @@ public class Shooter {
 
         if (Math.abs(110 - getPotPosition()) <= 5) {
             telemetry.addLine("Spinning up wheels");
-            shootTop.setVelocity(shooterVelocity+4000);
-            shootBottom.setVelocity(shooterVelocity);
+            shootTop.setVelocity(shooterTopVelocity);
+            shootBottom.setVelocity(shooterBottomVelocity);
+        }
+    }
+    private void AimInPlaceClose() {
+        shooterBottomVelocity = 1000;
+        shooterTopVelocity = 1300;
+
+        double command = controller.calculatePosition(110, getPotPosition());
+        pivotLeft.setPower(command);
+        pivotRight.setPower(command);
+
+        if (Math.abs(110 - getPotPosition()) <= 5) {
+            telemetry.addLine("Spinning up wheels");
+            shootTop.setVelocity(shooterTopVelocity);
+            shootBottom.setVelocity(shooterBottomVelocity);
         }
     }
 
@@ -252,15 +273,46 @@ public class Shooter {
         return new Servo[]{kickLeft, kickCenter, kickRight};
     }
 
-    private boolean motorsAtVelocity(double target) {
-        double VELOCITY_TOLERANCE = 75;
+//    private boolean motorsAtVelocity(double target) {
+//        double VELOCITY_TOLERANCE = 50;
+//
+//        double top = shootTop.getVelocity();
+//        double bottom = shootBottom.getVelocity();
+//        return Math.abs(top - (target)) < VELOCITY_TOLERANCE ||
+//                Math.abs(bottom - target) < VELOCITY_TOLERANCE;
+//    }
+    private boolean motorsAtVelocityDiff(double targetTop, double targetBottom) {
+        double VELOCITY_TOLERANCE = 50;
 
         double top = shootTop.getVelocity();
         double bottom = shootBottom.getVelocity();
-        return Math.abs(top - (target+4000)) < VELOCITY_TOLERANCE ||
-                Math.abs(bottom - target) < VELOCITY_TOLERANCE;
+        return Math.abs(top - (targetTop)) < VELOCITY_TOLERANCE ||
+                Math.abs(bottom - targetBottom) < VELOCITY_TOLERANCE;
     }
 
+//    private void Shoot(shootOrder order) {
+//        telemetry.addLine("Started shooting");
+//        telemetry.update();
+//        Servo[] sequence = getServoOrder(order);
+//        telemetry.addData("Servo order: ", sequence);
+//
+//        // Wait until motors are at target velocity
+//        if (motorsAtVelocity(shooterVelocity)) {
+//            Servo servo = sequence[servoCounter];
+//            // Move the current servo
+//            servo.setPosition(0.85);
+//            telemetry.addLine("Moved servo");
+//            Wait(750);
+//            servo.setPosition(0.65);
+//            telemetry.update();
+//            Wait(250);
+//            servoCounter++;
+//        }
+//        if (servoCounter > 2) {
+//            servoCounter = 0;
+//            currentAction = ShooterActions.Intake;
+//        }
+//    }
     private void Shoot(shootOrder order) {
         telemetry.addLine("Started shooting");
         telemetry.update();
@@ -268,7 +320,7 @@ public class Shooter {
         telemetry.addData("Servo order: ", sequence);
 
         // Wait until motors are at target velocity
-        if (motorsAtVelocity(shooterVelocity)) {
+        if (motorsAtVelocityDiff(shooterTopVelocity, shooterBottomVelocity)) {
             Servo servo = sequence[servoCounter];
             // Move the current servo
             servo.setPosition(0.85);
@@ -346,14 +398,14 @@ public class Shooter {
      * Can take currPose from limelight or odo
      * Can be changed to use limelight distance to tag
      */
-    private void alignAndAim() {
-        this.Drive.localizer.update();
-        //Target X - actual X, target Y - actual Y
-        double heading = Math.atan2((this.alliance_blue? blueGoalPose.x : redGoalPose.x) - this.Drive.localizer.getPose().position.x,
-                (this.alliance_blue? blueGoalPose.y : redGoalPose.y) - this.Drive.localizer.getPose().position.y);
-        this.Drive.new TurnAction(new TimeTurn(this.Drive.localizer.getPose(), heading, this.Drive.defaultTurnConstraints));
-        AimAndSpinUp();
-    }
+//    private void alignAndAim() {
+//        this.Drive.localizer.update();
+//        //Target X - actual X, target Y - actual Y
+//        double heading = Math.atan2((this.alliance_blue? blueGoalPose.x : redGoalPose.x) - this.Drive.localizer.getPose().position.x,
+//                (this.alliance_blue? blueGoalPose.y : redGoalPose.y) - this.Drive.localizer.getPose().position.y);
+//        this.Drive.new TurnAction(new TimeTurn(this.Drive.localizer.getPose(), heading, this.Drive.defaultTurnConstraints));
+//        AimAndSpinUp();
+//    }
 
     private void Intake() {
         double command = controller.calculatePosition(-7, getPotPosition());
@@ -362,6 +414,14 @@ public class Shooter {
 
         shootTop.setPower(-0.75);
         shootBottom.setPower(0);
+    }
+    private void IntakeHuman() {
+        double command = controller.calculatePosition(105, getPotPosition());
+        pivotLeft.setPower(command);
+        pivotRight.setPower(command);
+
+        shootTop.setPower(-0.25);
+        shootBottom.setPower(-0.25);
     }
 
     private void ZeroPower() {

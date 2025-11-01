@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.Teleop;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
@@ -8,6 +8,8 @@ import com.acmerobotics.roadrunner.Vector2d;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+import org.firstinspires.ftc.teamcode.MecanumDrive;
+import org.firstinspires.ftc.teamcode.Shooter;
 import org.firstinspires.ftc.teamcode.Util.PID;
 
 @TeleOp(name = "Red Teleop for Mecanum Drive")
@@ -17,7 +19,7 @@ public class RedTeleopMecanumDrive extends LinearOpMode {
         // Change new Pose2d to match where you start out of auto
         MecanumDrive drive = new MecanumDrive(hardwareMap, new Pose2d(0,0,0));
         double commandDegrees = 0;
-        PID turnController = new PID(0.05, 0, 0.0000001);
+        PID turnController = new PID(0.02, 0, 0.0000001);
         Shooter shooter = new Shooter(hardwareMap, drive, false, telemetry);
         shooter.setAction(Shooter.ShooterActions.NoAction);
         FtcDashboard dashboard = FtcDashboard.getInstance();
@@ -49,6 +51,9 @@ public class RedTeleopMecanumDrive extends LinearOpMode {
             } else if (gamepad1.dpad_right) {
                 commandDegrees = -90;
             }
+            if (gamepad1.b) {
+                shooter.setAction(Shooter.ShooterActions.IntakeHuman);
+            }
 
             telemetry.addData("Commanded Degrees: ", commandDegrees);
             telemetry.addData("Current Degrees: ", Math.toDegrees(drive.localizer.getPose().heading.toDouble()));
@@ -69,13 +74,19 @@ public class RedTeleopMecanumDrive extends LinearOpMode {
                 shooter.setAction(Shooter.ShooterActions.Intake);
             }
             if (gamepad2.b) {
-                shooter.setAction(Shooter.ShooterActions.AimInPlace);
+                shooter.setAction(Shooter.ShooterActions.AimInPlaceFar);
+            }
+            if (gamepad2.right_trigger > 0.25) {
+                shooter.setAction(Shooter.ShooterActions.AimInPLaceClose);
             }
             if (gamepad2.right_bumper) {
                 shooter.setAction(Shooter.ShooterActions.ZeroPower);
             }
             if (gamepad2.y) {
                 commandDegrees = 60;
+            }
+            if (gamepad2.left_trigger > 0.25) {
+                commandDegrees = 45;
             }
             if (gamepad2.left_bumper) {
                 shooter.setAction(Shooter.ShooterActions.Park);
