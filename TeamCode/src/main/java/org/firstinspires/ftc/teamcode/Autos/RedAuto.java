@@ -21,17 +21,15 @@ public class RedAuto extends LinearOpMode {
         Shooter shooter = new Shooter(hardwareMap, drive, true, telemetry);
         shooter.setAction(Shooter.ShooterActions.NoAction);
         double x;
-        double y;
-        ElapsedTime timer = new ElapsedTime();
+        double y = 0;
         waitForStart();
+        ElapsedTime timer = new ElapsedTime();
         if (isStopRequested()) return;
         while (opModeIsActive()) {
             if (timer.milliseconds() > 750) {
                 x = 0;
-                y = 0;
             } else {
                 x = 1;
-                y = 0;
             }
             double rx = turnController.calculate(Math.toDegrees(drive.localizer.getPose().heading.toDouble()), commandDegrees);
             drive.localizer.update();
