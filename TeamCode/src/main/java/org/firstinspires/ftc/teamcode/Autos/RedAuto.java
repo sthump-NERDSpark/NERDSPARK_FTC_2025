@@ -17,7 +17,7 @@ public class RedAuto extends LinearOpMode {
     public void runOpMode() {
         MecanumDrive drive = new MecanumDrive(hardwareMap, new Pose2d(0,0,0));
         double commandDegrees = 0;
-        PID turnController = new PID(0.02, 0, 0.0000001);
+        PID turnController = new PID(0.022, 0, 0.0000005);
         Shooter shooter = new Shooter(hardwareMap);
         shooter.setAction(Shooter.ShooterActions.NoAction);
         double x;
