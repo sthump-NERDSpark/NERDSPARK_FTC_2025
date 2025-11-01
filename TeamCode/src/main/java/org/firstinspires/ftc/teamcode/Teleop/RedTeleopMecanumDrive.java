@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.Teleop;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
@@ -8,10 +8,12 @@ import com.acmerobotics.roadrunner.Vector2d;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+import org.firstinspires.ftc.teamcode.MecanumDrive;
+import org.firstinspires.ftc.teamcode.Shooter;
 import org.firstinspires.ftc.teamcode.Util.PID;
 
-@TeleOp(name = "Blue Teleop for Mecanum Drive", group = "Robot")
-public class BlueTeleopMecanumDrive extends LinearOpMode {
+@TeleOp(name = "Red Teleop for Mecanum Drive", group = "Robot")
+public class RedTeleopMecanumDrive extends LinearOpMode {
     @Override
     public void runOpMode() {
         // Change new Pose2d to match where you start out of auto
@@ -81,7 +83,7 @@ public class BlueTeleopMecanumDrive extends LinearOpMode {
                 shooter.setAction(Shooter.ShooterActions.IntakeOFF);
             }
             if (gamepad2.y) {
-                commandDegrees = -45;
+                commandDegrees = 45;
             }
             shooter.updateAction();
 
