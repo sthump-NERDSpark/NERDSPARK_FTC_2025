@@ -11,7 +11,7 @@ import org.firstinspires.ftc.teamcode.MecanumDrive;
 import org.firstinspires.ftc.teamcode.Shooter;
 import org.firstinspires.ftc.teamcode.Util.PID;
 
-@Autonomous(name = "Red Auton", preselectTeleOp = "RedTeleopMecanumDrive")
+@Autonomous(name = "Red Auton", preselectTeleOp = "Red Teleop for Mecanum Drive")
 public class RedAuto extends LinearOpMode {
     @Override
     public void runOpMode() {
