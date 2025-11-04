@@ -59,19 +59,19 @@ public class LimelightManager {
     }
 
 //    takes distance from goal based on alliance
-    public Vector2d getDistance(boolean alliance_blue) {
+    public double getDistance(boolean alliance_blue) {
         LLResult result = limelight.getLatestResult();
-        List<LLResultTypes.FiducialResult> fiducials = result.getFiducialResults();
-        for (LLResultTypes.FiducialResult fiducial : fiducials) {
-            int id = fiducial.getFiducialId();
-            if (id == 20 && alliance_blue) {
-                Pose3D pose = fiducial.getRobotPoseTargetSpace();
-                return new Vector2d(pose.getPosition().x, pose.getPosition().y);
-            } else if (id == 24 && !alliance_blue) {
-                Pose3D pose = fiducial.getRobotPoseTargetSpace();
-                return new Vector2d(pose.getPosition().x, pose.getPosition().y);
+        if (result != null && result.isValid()) {
+            List<LLResultTypes.FiducialResult> fiducials = result.getFiducialResults();
+            for (LLResultTypes.FiducialResult fiducial : fiducials) {
+                int id = fiducial.getFiducialId();
+                if (id == 20 && alliance_blue) {
+                    return result.getTx();
+                } else if (id == 24 && !alliance_blue) {
+                    return result.getTx();
+                }
             }
         }
-        return null;
+        return -1;
     }
 }

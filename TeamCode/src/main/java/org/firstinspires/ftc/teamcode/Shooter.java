@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
+import androidx.annotation.NonNull;
+
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.TimeTurn;
 import com.acmerobotics.roadrunner.Vector2d;
@@ -34,7 +36,7 @@ public class Shooter {
     private ShooterActions currentAction;
     private final MecanumDrive Drive;
     private final boolean alliance_blue;
-//    private final LimelightManager limelight;
+    private final LimelightManager limelight;
 
     public final DcMotorEx shootTop;
     public final DcMotorEx shootBottom;
@@ -70,16 +72,18 @@ public class Shooter {
         SECOND,
         THIRD
     }
+    public shootOrder shotOrder = null;
 
     // FOR FINDING BEST SHOT
-    // Gravity constant (m/s^2)
-    //private static final double G_m = 9.81;
-    // Gravity constant (ft/s^2)
-    private static final double G_ft = 32.174;
+    private static final double G_ft = 32.174; // gravity in ft/s²
+    private static final double INCHES_TO_FEET = 1.0 / 12.0;
+    private static final double WHEEL_DIAMETER_INCHES = 2.0; // contact wheel
+    private static final double PI = Math.PI;
 
-    private static class Result {
-        public int angleDeg;
-        public double speed;
+    public static class Result {
+        public double angleDeg;
+        public double topMotorDegPerSec;
+        public double bottomMotorDegPerSec;
         public double error;
     }
 
@@ -87,11 +91,11 @@ public class Shooter {
     private static final Vector2d redGoalPose = new Vector2d(63,55);
     private final Telemetry telemetry;
 
-    public Shooter(HardwareMap hardwareMap,MecanumDrive drive,boolean alliance,Telemetry telemetry) {
+    public Shooter(HardwareMap hardwareMap,MecanumDrive drive,LimelightManager ll,boolean alliance,Telemetry telemetry) {
         this.Drive = drive;
         this.alliance_blue = alliance;
         this.telemetry = telemetry;
-//        this.limelight = ll;
+        this.limelight = ll;
 
         shootTop = hardwareMap.get(DcMotorEx.class, "shootTop");
         shootBottom = hardwareMap.get(DcMotorEx.class, "shootBottom");
@@ -123,7 +127,6 @@ public class Shooter {
         // TODO
 //        park.setPosition(0);
 
-        // Uncomment if needed
         kickLeft.setDirection(Servo.Direction.FORWARD);
         kickCenter.setDirection(Servo.Direction.FORWARD);
         kickRight.setDirection(Servo.Direction.REVERSE);
@@ -139,10 +142,10 @@ public class Shooter {
 
     public void updateAction() {
         switch (currentAction) {
-            case Shoot: shoot(); break;
+            case Shoot: Shoot(); break;
             case Intake: Intake(); break;
             case IntakeHuman: IntakeHuman(); break;
-//            case AlignAndAim: alignAndAim(); break;
+            case AlignAndAim: alignAndAim(); break;
             case AimInPlaceFar: AimInPlaceFar(); break;
             case AimInPLaceClose: AimInPlaceClose(); break;
             case ZeroPower: ZeroPower(); break;
@@ -157,80 +160,87 @@ public class Shooter {
     }
 
     /**
-     * MAKE SURE ALL UNITS ARE IN FT, FT/S^2
-     * Currently runs on robot pose and goal pose but can be changed to use limelight distance plus some
+     * Finds the best shooter angle and motor speeds for a given distance and fixed height.
+     * @param distanceInches  distance from shooter to target (inches)
+     * @param heightInches    fixed height difference (targetY - shooterY)
+     * @param minAngleDeg     minimum shooter angle (deg)
+     * @param horizontalAngleDeg mechanical angle where shooter is level with the floor (deg)
+     * @param maxAngleDeg     maximum shooter angle (deg)
+     * @param minSpeedFtPerSec  minimum launch speed to test (ft/s)
+     * @param maxSpeedFtPerSec  maximum launch speed to test (ft/s)
+     * @param angleStepDeg    step size for angle (deg)
+     * @param speedStepFtPerSec step size for speed (ft/s)
+     * @param topToBottomRatio ratio of top to bottom motor speed (>1 = topspin)
      */
-//    private static Result findBestShot(
-//            double xStart, double yStart,
-//            double xEnd, double yEnd, // Can replace these with limelight distance to tag plus some
-//            // double ll_dx, double ll_dy
-//            int minAngle, double maxAngle, double angleHorizontal,
-//            double minSpeed, double maxSpeed,
-//            int angleStep, double speedStep) {
-//
-//        double dx = xEnd - xStart; // Can replace with limelight distance to tag plus some
-//        // double dx = ll_dx + 5; // Need to find offset
-//        double dy = yEnd - yStart; // Can replace with limelight distance to tag plus some
-//        // double dy = ll_dy + 5 // Need to find offset
-//
-//        double bestError = Double.MAX_VALUE;
-//        Result best = new Result();
-//
-//        for (int angle = minAngle; angle <= maxAngle; angle += angleStep) {
-//            // Convert to radians relative to horizontal
-//            double theta = Math.toRadians(angle - angleHorizontal);
-//
-//            for (double v = minSpeed; v <= maxSpeed; v += speedStep) {
-//                double yPred = dx * Math.tan(theta)
-//                        - (G_ft * dx * dx) / (2 * v * v * Math.cos(theta) * Math.cos(theta));
-//
-//                double error = Math.abs(yPred - dy);
-//
-//                if (error < bestError) {
-//                    bestError = error;
-//                    best.angleDeg = angle;
-//                    best.error = error;
-//
-//                    // Convert ball linear speed to wheel angular speed
-//                    double radius = 0.0508 / 2.0;
-//                    double omegaRadPerSec = v / radius;
-//                    best.speed = omegaRadPerSec * (180.0 / Math.PI);
-//                }
-//            }
-//        }
-//
-//        return best;
-//    }
+    private static Result findBestShot(double distanceInches, double heightInches,
+                                       int minAngleDeg, double maxAngleDeg, double horizontalAngleDeg,
+                                       double minSpeedFtPerSec, double maxSpeedFtPerSec,
+                                       int angleStepDeg, double speedStepFtPerSec,
+                                       double topToBottomRatio) {
+
+        double dx = distanceInches * INCHES_TO_FEET;
+        double dy = heightInches * INCHES_TO_FEET;
+        double bestError = Double.MAX_VALUE;
+        Result best = new Result();
+
+        for (int angle = minAngleDeg; angle <= maxAngleDeg; angle += angleStepDeg) {
+            double theta = Math.toRadians(angle - horizontalAngleDeg);
+
+            for (double v = minSpeedFtPerSec; v <= maxSpeedFtPerSec; v += speedStepFtPerSec) {
+                // projectile motion equation: y = x*tan(a) - (g*x²)/(2*v²*cos²(a))
+                double yPred = dx * Math.tan(theta)
+                        - (G_ft * dx * dx) / (2 * v * v * Math.pow(Math.cos(theta), 2));
+
+                double error = Math.abs(yPred - dy);
+
+                if (error < bestError) {
+                    bestError = error;
+                    best.angleDeg = angle;
+                    best.error = error;
+
+                    // Convert ball linear speed to wheel angular speed
+                    double wheelRadiusFeet = (WHEEL_DIAMETER_INCHES / 12.0) / 2.0;
+                    double wheelAngularVelocityRadPerSec = v / wheelRadiusFeet;
+                    double wheelAngularVelocityDegPerSec = Math.toDegrees(wheelAngularVelocityRadPerSec);
+
+                    // Split speeds for spin
+                    double avgFactor = (topToBottomRatio + 1.0) / 2.0;
+                    best.topMotorDegPerSec = wheelAngularVelocityDegPerSec * topToBottomRatio / avgFactor;
+                    best.bottomMotorDegPerSec = wheelAngularVelocityDegPerSec / avgFactor;
+                }
+            }
+        }
+
+        return best;
+    }
 
     /**
      * This action aims the shooter and spins up the motors
      * Uses odo position
      * Can be changed to use limelight distance to tag
      */
-//    private void AimAndSpinUp() { // @NonNull LimelightManager ll,
-//        // Vector2d vect = ll.getDistance();
-//        this.Drive.localizer.update();
-//
-//        Result r = findBestShot(this.Drive.localizer.getPose().position.x + 0,
-//                this.Drive.localizer.getPose().position.y + 0,
-//                this.alliance_blue? blueGoalPose.x : redGoalPose.x, this.alliance_blue? blueGoalPose.y : redGoalPose.y,
-//                // vect.x, vect.y,
-//                1, 75, 40, 375, 1400,
-//                5, 25);
-//
-//        shooterVelocity = r.speed;
-//
-//        double command = controller.calculate(r.angleDeg, getPotPosition());
-//        pivotLeft.setPower(command);
-//        pivotRight.setPower(command);
-//
-//        if (Math.abs(r.angleDeg - getPotPosition()) <= 5) {
-//            shootTop.setVelocity(shooterVelocity, AngleUnit.DEGREES);
-//            shootBottom.setVelocity(shooterVelocity, AngleUnit.DEGREES);
-//        }
-//
-////      packet.put("Height error: ", r.error);
-//    }
+    private void AimAndSpinUp() {
+        if (limelight.getDistance(alliance_blue) > 0) {
+            Result r = findBestShot(limelight.getDistance(alliance_blue), 15,
+                    0, 110, 43, 500, 1200,
+                    5, 10, 1.2);
+
+            shooterTopVelocity = r.topMotorDegPerSec;
+            shooterBottomVelocity = r.bottomMotorDegPerSec;
+
+            double command = controller.calculate(r.angleDeg, getPotPosition());
+            pivotLeft.setPower(command);
+            pivotRight.setPower(command);
+
+            if (Math.abs(r.angleDeg - getPotPosition()) <= 5) {
+                shootTop.setVelocity(shooterTopVelocity, AngleUnit.DEGREES);
+                shootBottom.setVelocity(shooterBottomVelocity, AngleUnit.DEGREES);
+            }
+        } else {
+            telemetry.addLine("To Close To Read Tag!");
+            telemetry.update();
+        }
+    }
 
     private void AimInPlaceFar() {
         shooterBottomVelocity = 1200;
@@ -263,24 +273,18 @@ public class Shooter {
 
     // Build the servo order dynamically based on order
     private Servo[] getServoOrder(shootOrder order) {
-        switch (order) {
-            case LEFT: return new Servo[]{kickLeft, kickCenter, kickRight};
-            case CENTER_LEFT: return new Servo[]{kickCenter, kickLeft, kickRight};
-            case CENTER_LAST: return new Servo[]{kickLeft, kickRight, kickCenter};
-            case CENTER_RIGHT: return new Servo[]{kickCenter, kickRight, kickLeft};
-            case RIGHT: return new Servo[]{kickRight, kickLeft, kickCenter};
+        if (order != null) {
+            switch (order) {
+                case LEFT: return new Servo[]{kickLeft, kickCenter, kickRight};
+                case CENTER_LEFT: return new Servo[]{kickCenter, kickLeft, kickRight};
+                case CENTER_LAST: return new Servo[]{kickLeft, kickRight, kickCenter};
+                case CENTER_RIGHT: return new Servo[]{kickCenter, kickRight, kickLeft};
+                case RIGHT: return new Servo[]{kickRight, kickLeft, kickCenter};
+            }
         }
         return new Servo[]{kickLeft, kickCenter, kickRight};
     }
 
-//    private boolean motorsAtVelocity(double target) {
-//        double VELOCITY_TOLERANCE = 50;
-//
-//        double top = shootTop.getVelocity();
-//        double bottom = shootBottom.getVelocity();
-//        return Math.abs(top - (target)) < VELOCITY_TOLERANCE ||
-//                Math.abs(bottom - target) < VELOCITY_TOLERANCE;
-//    }
     private boolean motorsAtVelocity(double targetTop, double targetBottom) {
         double VELOCITY_TOLERANCE = 50;
 
@@ -290,33 +294,13 @@ public class Shooter {
                 Math.abs(bottom - targetBottom) < VELOCITY_TOLERANCE;
     }
 
-//    private void Shoot(shootOrder order) {
-//        telemetry.addLine("Started shooting");
-//        telemetry.update();
-//        Servo[] sequence = getServoOrder(order);
-//        telemetry.addData("Servo order: ", sequence);
-//
-//        // Wait until motors are at target velocity
-//        if (motorsAtVelocity(shooterVelocity)) {
-//            Servo servo = sequence[servoCounter];
-//            // Move the current servo
-//            servo.setPosition(0.85);
-//            telemetry.addLine("Moved servo");
-//            Wait(750);
-//            servo.setPosition(0.65);
-//            telemetry.update();
-//            Wait(250);
-//            servoCounter++;
-//        }
-//        if (servoCounter > 2) {
-//            servoCounter = 0;
-//            currentAction = ShooterActions.Intake;
-//        }
-//    }
-    private void Shoot(shootOrder order) {
+    private void Shoot() {
         telemetry.addLine("Started shooting");
         telemetry.update();
-        Servo[] sequence = getServoOrder(order);
+        if (shotOrder == null) {
+            getServoOrder();
+        }
+        Servo[] sequence = getServoOrder(shotOrder);
         telemetry.addData("Servo order: ", sequence);
 
         // Wait until motors are at target velocity
@@ -339,58 +323,55 @@ public class Shooter {
 
     /**
      * This action shoots the balls in a specified order
-     * Has code for limelight
      */
-    private void shoot() { // @NonNull LimelightManager ll, boolean alliance_blue
-        telemetry.addLine("Start shooting process");
-        greenShot first = greenShot.FIRST; // ll.getOrder(alliance_blue);
-        double[] hues = {
-                JavaUtil.colorToHue(sensorLeft.getNormalizedColors().toColor()),
-                JavaUtil.colorToHue(sensorCenter.getNormalizedColors().toColor()),
-                JavaUtil.colorToHue(sensorRight.getNormalizedColors().toColor())
-        };
-        for (int i = 0; i < hues.length; i++) {
-            telemetry.addLine("Entered for loop");
-            if (hues[i] >= 79f && hues[i] <= 139f) {
-                switch (i) {
-                    // Green ball is in left
-                    case 0:
-                        telemetry.addLine("Green ball left");
-                        switch (first) {
-                            case FIRST:
-                                Shoot(shootOrder.LEFT);
-                            case SECOND:
-                                Shoot(shootOrder.CENTER_LEFT);
-                            case THIRD:
-                                Shoot(shootOrder.RIGHT);
-                        }
-                    // Green ball is in center
-                    case 1:
-                        telemetry.addLine("Green ball center");
-                        switch (first) {
-                            case FIRST:
-                                Shoot(shootOrder.CENTER_LEFT);
-                            case SECOND:
-                                Shoot(shootOrder.LEFT);
-                            case THIRD:
-                                Shoot(shootOrder.CENTER_LAST);
-                        }
-                    // Green ball is in right
-                    case 2:
-                        telemetry.addLine("Green ball right");
-                        switch (first) {
-                            case FIRST:
-                                Shoot(shootOrder.RIGHT);
-                            case SECOND:
-                                Shoot(shootOrder.CENTER_RIGHT);
-                            case THIRD:
-                                Shoot(shootOrder.LEFT);
-                        }
+    private void getServoOrder() {
+        if (shotOrder == null) {
+            greenShot first = limelight.getOrder(alliance_blue);
+            double[] hues = {
+                    JavaUtil.colorToHue(sensorLeft.getNormalizedColors().toColor()),
+                    JavaUtil.colorToHue(sensorCenter.getNormalizedColors().toColor()),
+                    JavaUtil.colorToHue(sensorRight.getNormalizedColors().toColor())
+            };
+            for (int i = 0; i < hues.length; i++) {
+                if (hues[i] <= 213) {
+                    switch (i) {
+                        // Green ball is in left
+                        case 0:
+                            telemetry.addLine("Green ball left");
+                            switch (first) {
+                                case FIRST:
+                                    shotOrder = shootOrder.LEFT; break;
+                                case SECOND:
+                                    shotOrder = shootOrder.CENTER_LEFT; break;
+                                case THIRD:
+                                    shotOrder = shootOrder.RIGHT; break;
+                            }
+                            // Green ball is in center
+                        case 1:
+                            telemetry.addLine("Green ball center");
+                            switch (first) {
+                                case FIRST:
+                                    shotOrder = shootOrder.CENTER_LEFT; break;
+                                case SECOND:
+                                    shotOrder = shootOrder.LEFT; break;
+                                case THIRD:
+                                    shotOrder = shootOrder.CENTER_LAST; break;
+                            }
+                            // Green ball is in right
+                        case 2:
+                            telemetry.addLine("Green ball right");
+                            switch (first) {
+                                case FIRST:
+                                    shotOrder = shootOrder.RIGHT; break;
+                                case SECOND:
+                                    shotOrder = shootOrder.CENTER_RIGHT; break;
+                                case THIRD:
+                                    shotOrder = shootOrder.LEFT; break;
+                            }
+                    }
                 }
             }
         }
-        telemetry.addLine("Defaulted");
-        Shoot(shootOrder.LEFT);
     }
 
     /**
@@ -398,14 +379,14 @@ public class Shooter {
      * Can take currPose from limelight or odo
      * Can be changed to use limelight distance to tag
      */
-//    private void alignAndAim() {
-//        this.Drive.localizer.update();
-//        //Target X - actual X, target Y - actual Y
-//        double heading = Math.atan2((this.alliance_blue? blueGoalPose.x : redGoalPose.x) - this.Drive.localizer.getPose().position.x,
-//                (this.alliance_blue? blueGoalPose.y : redGoalPose.y) - this.Drive.localizer.getPose().position.y);
-//        this.Drive.new TurnAction(new TimeTurn(this.Drive.localizer.getPose(), heading, this.Drive.defaultTurnConstraints));
-//        AimAndSpinUp();
-//    }
+    private void alignAndAim() {
+        this.Drive.localizer.update();
+        //Target X - actual X, target Y - actual Y
+        double heading = Math.atan2((this.alliance_blue? blueGoalPose.x : redGoalPose.x) - limelight.getBotPose(Drive, telemetry).position.x,
+                (this.alliance_blue? blueGoalPose.y : redGoalPose.y) - limelight.getBotPose(Drive, telemetry).position.y);
+        this.Drive.new TurnAction(new TimeTurn(this.Drive.localizer.getPose(), heading, this.Drive.defaultTurnConstraints));
+        AimAndSpinUp();
+    }
 
     private void Intake() {
         double command = controller.calculatePosition(-7, getPotPosition());
