@@ -17,14 +17,14 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.Util.PID;
 
-@Config
+import java.util.HashMap;
+
 public class Shooter {
     public enum ShooterActions {
         Intake,
         IntakeHuman,
         AlignAndAim,
         Shoot,
-        AimAndSpinUp,
         AimInPlaceFar,
         AimInPLaceClose,
         ZeroPower,
@@ -34,6 +34,7 @@ public class Shooter {
     private ShooterActions currentAction;
     private final MecanumDrive Drive;
     private final boolean alliance_blue;
+//    private final LimelightManager limelight;
 
     public final DcMotorEx shootTop;
     public final DcMotorEx shootBottom;
@@ -53,7 +54,6 @@ public class Shooter {
     private final NormalizedColorSensor sensorRight;
 
     // FOR SHOOTING
-    private double shooterVelocity;
     private double shooterBottomVelocity;
     private double shooterTopVelocity;
 
@@ -87,10 +87,11 @@ public class Shooter {
     private static final Vector2d redGoalPose = new Vector2d(63,55);
     private final Telemetry telemetry;
 
-    public Shooter(HardwareMap hardwareMap,MecanumDrive drive,boolean alliance, Telemetry telemetry) {
+    public Shooter(HardwareMap hardwareMap,MecanumDrive drive,boolean alliance,Telemetry telemetry) {
         this.Drive = drive;
         this.alliance_blue = alliance;
         this.telemetry = telemetry;
+//        this.limelight = ll;
 
         shootTop = hardwareMap.get(DcMotorEx.class, "shootTop");
         shootBottom = hardwareMap.get(DcMotorEx.class, "shootBottom");
@@ -142,7 +143,6 @@ public class Shooter {
             case Intake: Intake(); break;
             case IntakeHuman: IntakeHuman(); break;
 //            case AlignAndAim: alignAndAim(); break;
-//            case AimAndSpinUp: AimAndSpinUp(); break;
             case AimInPlaceFar: AimInPlaceFar(); break;
             case AimInPLaceClose: AimInPlaceClose(); break;
             case ZeroPower: ZeroPower(); break;
@@ -281,7 +281,7 @@ public class Shooter {
 //        return Math.abs(top - (target)) < VELOCITY_TOLERANCE ||
 //                Math.abs(bottom - target) < VELOCITY_TOLERANCE;
 //    }
-    private boolean motorsAtVelocityDiff(double targetTop, double targetBottom) {
+    private boolean motorsAtVelocity(double targetTop, double targetBottom) {
         double VELOCITY_TOLERANCE = 50;
 
         double top = shootTop.getVelocity();
@@ -320,7 +320,7 @@ public class Shooter {
         telemetry.addData("Servo order: ", sequence);
 
         // Wait until motors are at target velocity
-        if (motorsAtVelocityDiff(shooterTopVelocity, shooterBottomVelocity)) {
+        if (motorsAtVelocity(shooterTopVelocity, shooterBottomVelocity)) {
             Servo servo = sequence[servoCounter];
             // Move the current servo
             servo.setPosition(0.85);

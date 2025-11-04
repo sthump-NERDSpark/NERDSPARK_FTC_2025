@@ -55,6 +55,8 @@ public class BlueTeleopMecanumDrive extends LinearOpMode {
                 shooter.setAction(Shooter.ShooterActions.IntakeHuman);
             }
 
+            drive.localizer.update();
+
             telemetry.addData("Commanded Degrees: ", commandDegrees);
             telemetry.addData("Current Degrees: ", Math.toDegrees(drive.localizer.getPose().heading.toDouble()));
 
