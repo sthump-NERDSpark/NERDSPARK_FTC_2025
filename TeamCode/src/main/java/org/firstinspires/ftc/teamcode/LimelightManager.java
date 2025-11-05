@@ -18,10 +18,11 @@ import java.util.List;
 public class LimelightManager {
     Limelight3A limelight;
 
-    public void init(@NonNull HardwareMap hardwareMap) {
+    public LimelightManager(@NonNull HardwareMap hardwareMap) {
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
         limelight.setPollRateHz(100); // This sets how often we ask Limelight for data (100 times per second)
         limelight.start(); // This tells Limelight to start looking!
+        limelight.pipelineSwitch(0);
     }
     public Pose2d getBotPose(MecanumDrive drive, @NonNull Telemetry telemetry) {
         // First, tell Limelight which way your robot is facing
@@ -66,9 +67,11 @@ public class LimelightManager {
             for (LLResultTypes.FiducialResult fiducial : fiducials) {
                 int id = fiducial.getFiducialId();
                 if (id == 20 && alliance_blue) {
-                    return result.getTx();
+                    return (50.8/Math.tan((fiducial.getTargetArea()/100) * 27.2525)) *
+                            (1/(Math.cos(fiducial.getTargetXDegrees()) * Math.cos(fiducial.getTargetYDegrees())));
                 } else if (id == 24 && !alliance_blue) {
-                    return result.getTx();
+                    return (50.8/Math.tan((fiducial.getTargetArea()/100) * 27.2525)) *
+                            (1/(Math.cos(fiducial.getTargetXDegrees()) * Math.cos(fiducial.getTargetYDegrees())));
                 }
             }
         }

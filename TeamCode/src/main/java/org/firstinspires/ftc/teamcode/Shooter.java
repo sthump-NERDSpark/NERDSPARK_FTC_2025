@@ -91,11 +91,11 @@ public class Shooter {
     private static final Vector2d redGoalPose = new Vector2d(63,55);
     private final Telemetry telemetry;
 
-    public Shooter(HardwareMap hardwareMap,MecanumDrive drive,LimelightManager ll,boolean alliance,Telemetry telemetry) {
+    public Shooter(HardwareMap hardwareMap,MecanumDrive drive,boolean alliance,Telemetry telemetry) {
         this.Drive = drive;
         this.alliance_blue = alliance;
         this.telemetry = telemetry;
-        this.limelight = ll;
+        this.limelight = new LimelightManager(hardwareMap);
 
         shootTop = hardwareMap.get(DcMotorEx.class, "shootTop");
         shootBottom = hardwareMap.get(DcMotorEx.class, "shootBottom");
