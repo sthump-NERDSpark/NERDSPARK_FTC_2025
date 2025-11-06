@@ -1,8 +1,5 @@
 package org.firstinspires.ftc.teamcode;
 
-import androidx.annotation.NonNull;
-
-import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.TimeTurn;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.qualcomm.robotcore.hardware.AnalogInput;
@@ -18,8 +15,7 @@ import org.firstinspires.ftc.robotcore.external.JavaUtil;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.Util.PID;
-
-import java.util.HashMap;
+import org.firstinspires.ftc.teamcode.Util.TimerWait;
 
 public class Shooter {
     public enum ShooterActions {
@@ -90,6 +86,8 @@ public class Shooter {
     private static final Vector2d blueGoalPose = new Vector2d(63,-55);
     private static final Vector2d redGoalPose = new Vector2d(63,55);
     private final Telemetry telemetry;
+    private final ElapsedTime timer = new ElapsedTime();
+    private final TimerWait waiter = new TimerWait();
 
     public Shooter(HardwareMap hardwareMap,MecanumDrive drive,boolean alliance,Telemetry telemetry) {
         this.Drive = drive;
@@ -303,17 +301,18 @@ public class Shooter {
         Servo[] sequence = getServoOrder(shotOrder);
         telemetry.addData("Servo order: ", sequence);
 
-        // Wait until motors are at target velocity
+        // ResetAndWait until motors are at target velocity
         if (motorsAtVelocity(shooterTopVelocity, shooterBottomVelocity)) {
             Servo servo = sequence[servoCounter];
             // Move the current servo
             servo.setPosition(0.85);
             telemetry.addLine("Moved servo");
-            Wait(750);
-            servo.setPosition(0.65);
+            waiter.startWait(750);
+            if (waiter.isDone()) {
+                servo.setPosition(0.65);
+                servoCounter++;
+            }
             telemetry.update();
-            Wait(250);
-            servoCounter++;
         }
         if (servoCounter > 2) {
             servoCounter = 0;
@@ -417,21 +416,9 @@ public class Shooter {
         shootBottom.setVelocity(0);
         pivotLeft.setPower(0);
         pivotRight.setPower(0);
-        Wait(250);
-        // TODO
-//        park.setPosition(0.1);
-    }
-
-    /**
-     * Time should be in milliseconds
-     */
-    private void Wait(double time) {
-        ElapsedTime timer = new ElapsedTime();
-
-        while (true) {
-            if (timer.milliseconds() >= time) {
-                break;
-            }
-        }
+//        waiter.startWait(500);
+//        if (waiter.isDone()) {
+//          park.setPosition(0.1);
+//        }
     }
 }

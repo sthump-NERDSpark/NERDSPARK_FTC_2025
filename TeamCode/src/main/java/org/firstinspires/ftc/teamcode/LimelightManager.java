@@ -2,7 +2,6 @@ package org.firstinspires.ftc.teamcode;
 
 import androidx.annotation.NonNull;
 
-import com.acmerobotics.roadrunner.Vector2d;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
@@ -20,9 +19,9 @@ public class LimelightManager {
 
     public LimelightManager(@NonNull HardwareMap hardwareMap) {
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
-        limelight.setPollRateHz(100); // This sets how often we ask Limelight for data (100 times per second)
-        limelight.start(); // This tells Limelight to start looking!
+        limelight.setPollRateHz(250); // This sets how often we ask Limelight for data (100 times per second)
         limelight.pipelineSwitch(0);
+        limelight.start(); // This tells Limelight to start looking!
     }
     public Pose2d getBotPose(MecanumDrive drive, @NonNull Telemetry telemetry) {
         // First, tell Limelight which way your robot is facing
@@ -48,9 +47,9 @@ public class LimelightManager {
         for (LLResultTypes.FiducialResult fiducial : fiducials) {
             int id = fiducial.getFiducialId(); // The ID number of the fiducial
             double tagYaw = fiducial.getTargetPoseRobotSpace().getOrientation().getYaw(AngleUnit.DEGREES);
-            if (id == 22 && tagYaw == fieldRight) {
+            if (id == 22 && Math.abs(fieldRight - tagYaw) <= 25) {
                 return Shooter.greenShot.SECOND;
-            } else if (id == 23 && tagYaw == fieldRight) {
+            } else if (id == 23 && Math.abs(fieldRight - tagYaw) <= 25) {
                 return Shooter.greenShot.THIRD;
             } else {
                 return Shooter.greenShot.FIRST;
