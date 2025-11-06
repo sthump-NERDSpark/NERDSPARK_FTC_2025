@@ -60,6 +60,9 @@ public class RedTeleopMecanumDrive extends LinearOpMode {
             } else if (gamepad1.dpad_right) {
                 commandDegrees = -90;
             }
+            if (gamepad1.y) {
+                commandDegrees = 45;
+            }
 
             telemetry.addData("Commanded Degrees: ", commandDegrees);
             telemetry.addData("Current Degrees: ", Math.toDegrees(drive.localizer.getPose().heading.toDouble()));
@@ -81,9 +84,6 @@ public class RedTeleopMecanumDrive extends LinearOpMode {
             }
             if (gamepad2.left_bumper) {
                 shooter.setAction(Shooter.ShooterActions.IntakeOFF);
-            }
-            if (gamepad2.y) {
-                commandDegrees = 45;
             }
             shooter.updateAction();
 
