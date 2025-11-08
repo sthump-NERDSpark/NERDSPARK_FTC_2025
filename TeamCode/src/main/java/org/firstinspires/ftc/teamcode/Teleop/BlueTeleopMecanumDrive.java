@@ -5,9 +5,11 @@ import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.PoseVelocity2d;
 import com.acmerobotics.roadrunner.Vector2d;
+import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+import org.firstinspires.ftc.teamcode.LimelightManager;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 import org.firstinspires.ftc.teamcode.Shooter;
 import org.firstinspires.ftc.teamcode.Util.PID;
@@ -19,11 +21,16 @@ public class BlueTeleopMecanumDrive extends LinearOpMode {
         // Change new Pose2d to match where you start out of auto
         MecanumDrive drive = new MecanumDrive(hardwareMap, new Pose2d(0,0,0));
         double commandDegrees = 0;
+        double rx = 0;
         PID turnController = new PID(0.02, 0, 0.0000001);
-        Shooter shooter = new Shooter(hardwareMap, drive,true, telemetry);
-        shooter.setAction(Shooter.ShooterActions.NoAction);
         FtcDashboard dashboard = FtcDashboard.getInstance();
+        Limelight3A ll = hardwareMap.get(Limelight3A.class, "limelight");
+        dashboard.startCameraStream(ll, 0);
         telemetry = new MultipleTelemetry(telemetry, dashboard.getTelemetry());
+        LimelightManager limelight = new LimelightManager(hardwareMap, telemetry, true);
+        Shooter shooter = new Shooter(hardwareMap, drive,true, telemetry, limelight);
+        shooter.setAction(Shooter.ShooterActions.NoAction);
+
         telemetry.clear();
 
         waitForStart();
@@ -54,14 +61,6 @@ public class BlueTeleopMecanumDrive extends LinearOpMode {
             if (gamepad1.b) {
                 shooter.setAction(Shooter.ShooterActions.IntakeHuman);
             }
-
-            drive.localizer.update();
-
-            telemetry.addData("Commanded Degrees: ", commandDegrees);
-            telemetry.addData("Current Degrees: ", Math.toDegrees(drive.localizer.getPose().heading.toDouble()));
-
-            double rx = turnController.calculate(Math.toDegrees(drive.localizer.getPose().heading.toDouble()), commandDegrees);
-            telemetry.addData("Motor Command: ", rx);
 
 //            if (gamepad1.b) {
 //                shooter.setAction(Shooter.ShooterActions.AimAndSpinUp);
@@ -95,12 +94,32 @@ public class BlueTeleopMecanumDrive extends LinearOpMode {
             }
             shooter.updateAction();
 
+            shooter.getPose();
+
+            drive.localizer.update();
+
+            if (gamepad1.left_bumper) {
+                if (limelight.angleToGoal() > -9) {
+                    rx = limelight.angleToGoal();
+                    commandDegrees = Math.toDegrees(drive.localizer.getPose().heading.toDouble());
+                } else {
+                    commandDegrees = -45;
+                    rx = turnController.calculate(Math.toDegrees(drive.localizer.getPose().heading.toDouble()), commandDegrees);
+                }
+            } else {
+                rx = turnController.calculate(Math.toDegrees(drive.localizer.getPose().heading.toDouble()), commandDegrees);
+            }
+
+            telemetry.addData("Commanded Degrees: ", commandDegrees);
+            telemetry.addData("Current Degrees: ", Math.toDegrees(drive.localizer.getPose().heading.toDouble()));
+
+            telemetry.addData("Motor Command: ", rx);
+
             telemetry.addData("Target: ", 1200);
             telemetry.addData("Shooter Top Actual", shooter.shootTop.getVelocity());
             telemetry.addData("Shooter Bottom Actual", shooter.shootBottom.getVelocity());
             telemetry.update();
 
-            drive.localizer.update();
             double botHeading = drive.localizer.getPose().heading.toDouble();
 
             // Rotate the movement direction counter to the bot's rotation

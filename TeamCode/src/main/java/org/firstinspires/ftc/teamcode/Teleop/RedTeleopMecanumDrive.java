@@ -8,6 +8,7 @@ import com.acmerobotics.roadrunner.Vector2d;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+import org.firstinspires.ftc.teamcode.LimelightManager;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 import org.firstinspires.ftc.teamcode.Shooter;
 import org.firstinspires.ftc.teamcode.Util.PID;
@@ -20,10 +21,11 @@ public class RedTeleopMecanumDrive extends LinearOpMode {
         MecanumDrive drive = new MecanumDrive(hardwareMap, new Pose2d(0,0,0));
         double commandDegrees = 0;
         PID turnController = new PID(0.02, 0, 0.0000001);
-        Shooter shooter = new Shooter(hardwareMap, drive, false, telemetry);
-        shooter.setAction(Shooter.ShooterActions.NoAction);
         FtcDashboard dashboard = FtcDashboard.getInstance();
         telemetry = new MultipleTelemetry(telemetry, dashboard.getTelemetry());
+        LimelightManager limelight = new LimelightManager(hardwareMap, telemetry, false);
+        Shooter shooter = new Shooter(hardwareMap, drive, false, telemetry, limelight);
+        shooter.setAction(Shooter.ShooterActions.NoAction);
         telemetry.clear();
 
         waitForStart();
