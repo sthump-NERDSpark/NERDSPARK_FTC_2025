@@ -15,6 +15,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.JavaUtil;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.internal.camera.delegating.DelegatingCaptureSequence;
 import org.firstinspires.ftc.teamcode.Util.PID;
 import org.firstinspires.ftc.teamcode.Util.TimerWait;
 
@@ -23,6 +24,10 @@ public class Shooter {
     public static double shooterTopConfig = 0;
     public static double shooterBottomConfig = 0;
     public static double shooterAngle = 0;
+
+    public static int velocityTolTimeOut = 3;
+
+    public static double VELOCITY_TOLERANCE = 60;
 
     public enum ShooterActions {
         Intake,
@@ -106,7 +111,7 @@ public class Shooter {
         shootBottom.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         shootTop.setDirection(DcMotorSimple.Direction.FORWARD);
         shootBottom.setDirection(DcMotorSimple.Direction.FORWARD);
-        shootTop.setVelocityPIDFCoefficients(55,0.6,0.9,19);
+        shootTop.setVelocityPIDFCoefficients(55,0.6,0.9,15);
         shootBottom.setVelocityPIDFCoefficients(55,0.6,0.9,20);
 
         kickLeft = hardwareMap.get(Servo.class, "leftKick");
@@ -210,7 +215,7 @@ public class Shooter {
     }
     private void AimInPlaceClose() {
         shooterBottomVelocity = 1000;
-        shooterTopVelocity = 1300;
+        shooterTopVelocity = 1550;
 
         double command = controller.calculatePosition(110, getPotPosition());
         pivotLeft.setPower(command);
@@ -236,14 +241,23 @@ public class Shooter {
         }
         return new Servo[]{kickLeft, kickCenter, kickRight};
     }
+    private int velocityTolCounter = 0;
 
     private boolean motorsAtVelocity(double targetTop, double targetBottom) {
-        double VELOCITY_TOLERANCE = 75;
+         int counter;
 
         double top = shootTop.getVelocity();
         double bottom = shootBottom.getVelocity();
-        return Math.abs(top - targetTop) < VELOCITY_TOLERANCE &&
-                Math.abs(bottom - targetBottom) < VELOCITY_TOLERANCE;
+        if (Math.abs(top - targetTop) > VELOCITY_TOLERANCE ||
+                Math.abs(bottom - targetBottom) > VELOCITY_TOLERANCE)
+        {
+            velocityTolCounter= 0;
+        }
+        else{
+            velocityTolCounter ++;
+        }
+
+        return (velocityTolCounter> velocityTolTimeOut);
     }
 
     private void Shoot() {

@@ -80,7 +80,7 @@ public class BlueTeleopMecanumDrive extends LinearOpMode {
             if (gamepad2.right_trigger > 0.25) {
                 shooter.setAction(Shooter.ShooterActions.AimInPLaceClose);
             }
-            if (gamepad2.right_bumper) {
+            if (gamepad2.right_bumper || gamepad1.right_bumper) {
                 shooter.setAction(Shooter.ShooterActions.ZeroPower);
             }
             if (gamepad2.y) {
