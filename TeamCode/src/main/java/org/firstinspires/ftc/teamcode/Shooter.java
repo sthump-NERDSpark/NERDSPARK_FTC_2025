@@ -3,6 +3,9 @@ package org.firstinspires.ftc.teamcode;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.TimeTurn;
 import com.acmerobotics.roadrunner.Vector2d;
+import com.qualcomm.hardware.limelightvision.LLResult;
+import com.qualcomm.hardware.limelightvision.Limelight3A;
+import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -18,17 +21,15 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.internal.camera.delegating.DelegatingCaptureSequence;
 import org.firstinspires.ftc.teamcode.Util.PID;
 import org.firstinspires.ftc.teamcode.Util.TimerWait;
+import org.firstinspires.ftc.teamcode.LimelightManager;
 
 @Config
 public class Shooter {
     public static double shooterTopConfig = 0;
     public static double shooterBottomConfig = 0;
     public static double shooterAngle = 0;
-
     public static int velocityTolTimeOut = 3;
-
     public static double VELOCITY_TOLERANCE = 60;
-
     public enum ShooterActions {
         Intake,
         IntakeHuman,
@@ -90,6 +91,7 @@ public class Shooter {
         this.alliance_blue = alliance;
         this.telemetry = telemetry;
         this.limelight = ll;
+
 
         shootTop = hardwareMap.get(DcMotorEx.class, "shootTop");
         shootBottom = hardwareMap.get(DcMotorEx.class, "shootBottom");
@@ -162,7 +164,7 @@ public class Shooter {
         pivotLeft.setPower(command);
         pivotRight.setPower(command);
 
-        if (Math.abs(shooterAngle - getPotPosition()) <= 10) {
+        if (Math.abs(getPotPosition()) >= 95) {
             shootTop.setVelocity(shooterTopConfig);
             shootBottom.setVelocity(shooterBottomConfig);
 //            Shoot();
@@ -201,27 +203,36 @@ public class Shooter {
 
     private void AimInPlaceFar() {
         shooterBottomVelocity = 1200;
-        shooterTopVelocity = 1600;
-
-        double command = controller.calculatePosition(110, getPotPosition());
-        pivotLeft.setPower(command);
-        pivotRight.setPower(command);
-
-        if (Math.abs(110 - getPotPosition()) <= 5) {
-            telemetry.addLine("Spinning up wheels");
-            shootTop.setVelocity(shooterTopVelocity);
-            shootBottom.setVelocity(shooterBottomVelocity);
-        }
-    }
-    private void AimInPlaceClose() {
-        shooterBottomVelocity = 1000;
         shooterTopVelocity = 1550;
 
         double command = controller.calculatePosition(110, getPotPosition());
         pivotLeft.setPower(command);
         pivotRight.setPower(command);
 
-        if (Math.abs(110 - getPotPosition()) <= 5) {
+        if (Math.abs(getPotPosition()) >= 95) {
+            telemetry.addLine("Spinning up wheels");
+            shootTop.setVelocity(shooterTopVelocity);
+            shootBottom.setVelocity(shooterBottomVelocity);
+        }
+    }
+    private void AimInPlaceClose() {
+
+        Double Ty = limelight.getTy();
+
+        if (Ty == null)
+        {
+            shooterBottomVelocity = 1000;
+        }
+        else {
+            shooterBottomVelocity = 3.5579 * Ty * Ty - 17.578 * Ty + 709.34;
+        }
+        shooterTopVelocity = 1550;
+
+        double command = controller.calculatePosition(110, getPotPosition());
+        pivotLeft.setPower(command);
+        pivotRight.setPower(command);
+
+        if (Math.abs(getPotPosition()) >= 95) {
             telemetry.addLine("Spinning up wheels");
             shootTop.setVelocity(shooterTopVelocity);
             shootBottom.setVelocity(shooterBottomVelocity);
@@ -244,7 +255,6 @@ public class Shooter {
     private int velocityTolCounter = 0;
 
     private boolean motorsAtVelocity(double targetTop, double targetBottom) {
-         int counter;
 
         double top = shootTop.getVelocity();
         double bottom = shootBottom.getVelocity();
@@ -364,7 +374,9 @@ public class Shooter {
         double command = controller.calculatePosition(-1, getPotPosition());
         pivotLeft.setPower(command);
         pivotRight.setPower(command);
-
+        kickCenter.setPosition(0.85);
+        kickLeft.setPosition(0.85);
+        kickRight.setPosition(0.85);
         shootTop.setPower(-0.5);
         shootBottom.setPower(0);
     }
@@ -372,7 +384,9 @@ public class Shooter {
         double command = controller.calculatePosition(100, getPotPosition());
         pivotLeft.setPower(command);
         pivotRight.setPower(command);
-
+        kickCenter.setPosition(0.85);
+        kickLeft.setPosition(0.85);
+        kickRight.setPosition(0.85);
         shootTop.setPower(-0.25);
         shootBottom.setPower(-0.25);
     }
@@ -381,6 +395,9 @@ public class Shooter {
         shootTop.setVelocity(0);
         shootBottom.setVelocity(0);
         double command = controller.calculatePosition(25, getPotPosition());
+        kickCenter.setPosition(0.85);
+        kickLeft.setPosition(0.85);
+        kickRight.setPosition(0.85);
         pivotLeft.setPower(command);
         pivotRight.setPower(command);
     }

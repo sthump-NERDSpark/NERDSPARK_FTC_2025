@@ -38,6 +38,7 @@ public class LimelightManager {
         LLResult result = limelight.getLatestResult();
         if (result.isValid()) {
             telemetry.addData("TX, TY: ", "(" + result.getTx() + "," + result.getTy() + ")");
+            double Ty = result.getTy();
         }
     }
 
@@ -66,5 +67,16 @@ public class LimelightManager {
             return pid.calculate(result.getTx(), -2);
         }
         return -10;
+    }
+
+    public Double getTy() {
+        LLResult result = limelight.getLatestResult();
+
+        if (result != null && result.isValid()) {
+            return result.getTy();
+        }
+
+        // return null (or Double.NaN) when there's no valid target
+        return null;
     }
 }
