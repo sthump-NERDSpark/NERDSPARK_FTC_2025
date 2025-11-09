@@ -21,7 +21,7 @@ public class BlueTeleopMecanumDrive extends LinearOpMode {
         // Change new Pose2d to match where you start out of auto
         MecanumDrive drive = new MecanumDrive(hardwareMap, new Pose2d(0,0,0), false);
         double commandDegrees = 0;
-        double rx = 0;
+        double rx;
         PID turnController = new PID(0.02, 0, 0.0000001);
         FtcDashboard dashboard = FtcDashboard.getInstance();
         Limelight3A ll = hardwareMap.get(Limelight3A.class, "limelight");
