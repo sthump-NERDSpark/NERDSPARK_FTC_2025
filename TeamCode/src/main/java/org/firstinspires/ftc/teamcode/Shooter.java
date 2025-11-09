@@ -165,7 +165,7 @@ public class Shooter {
         if (Math.abs(shooterAngle - getPotPosition()) <= 10) {
             shootTop.setVelocity(shooterTopConfig);
             shootBottom.setVelocity(shooterBottomConfig);
-            Shoot();
+//            Shoot();
         }
 //        telemetry.addData("LL TY: ", limelight.getDistance(alliance_blue));
         telemetry.update();

@@ -92,7 +92,6 @@ public class BlueTeleopMecanumDrive extends LinearOpMode {
             if (gamepad2.left_bumper) {
                 shooter.setAction(Shooter.ShooterActions.Park);
             }
-            shooter.updateAction();
 
             shooter.getPose();
 
@@ -102,6 +101,7 @@ public class BlueTeleopMecanumDrive extends LinearOpMode {
                 if (limelight.angleToGoal() > -9) {
                     rx = limelight.angleToGoal();
                     commandDegrees = Math.toDegrees(drive.localizer.getPose().heading.toDouble());
+                    shooter.setAction(Shooter.ShooterActions.AimInPlaceFar);
                 } else {
                     commandDegrees = -45;
                     rx = turnController.calculate(Math.toDegrees(drive.localizer.getPose().heading.toDouble()), commandDegrees);
@@ -109,6 +109,8 @@ public class BlueTeleopMecanumDrive extends LinearOpMode {
             } else {
                 rx = turnController.calculate(Math.toDegrees(drive.localizer.getPose().heading.toDouble()), commandDegrees);
             }
+
+            shooter.updateAction();
 
             telemetry.addData("Commanded Degrees: ", commandDegrees);
             telemetry.addData("Current Degrees: ", Math.toDegrees(drive.localizer.getPose().heading.toDouble()));
