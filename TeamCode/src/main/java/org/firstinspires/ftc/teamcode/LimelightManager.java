@@ -34,6 +34,10 @@ public class LimelightManager {
         limelight.start(); // This tells Limelight to start looking!
     }
 
+    public void setPipeline(int index) {
+        limelight.pipelineSwitch(index);
+    }
+
     public void getBotPose() {
         LLResult result = limelight.getLatestResult();
         if (result.isValid()) {

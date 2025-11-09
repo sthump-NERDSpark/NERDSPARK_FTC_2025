@@ -225,6 +225,11 @@ public final class MecanumDrive {
     }
 
     public MecanumDrive(HardwareMap hardwareMap, Pose2d pose) {
+        // Default: initialize IMU (use this from Auton)
+        this(hardwareMap, pose, true);
+    }
+
+    public MecanumDrive(HardwareMap hardwareMap, Pose2d pose, boolean initImu) {
         LynxFirmware.throwIfModulesAreOutdated(hardwareMap);
 
         for (LynxModule module : hardwareMap.getAll(LynxModule.class)) {

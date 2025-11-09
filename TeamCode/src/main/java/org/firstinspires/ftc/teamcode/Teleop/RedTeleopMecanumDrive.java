@@ -18,7 +18,7 @@ public class RedTeleopMecanumDrive extends LinearOpMode {
     @Override
     public void runOpMode() {
         // Change new Pose2d to match where you start out of auto
-        MecanumDrive drive = new MecanumDrive(hardwareMap, new Pose2d(0,0,0));
+        MecanumDrive drive = new MecanumDrive(hardwareMap, new Pose2d(0,0,0), false);
         double commandDegrees = 0;
         PID turnController = new PID(0.02, 0, 0.0000001);
         FtcDashboard dashboard = FtcDashboard.getInstance();
@@ -27,6 +27,8 @@ public class RedTeleopMecanumDrive extends LinearOpMode {
         Shooter shooter = new Shooter(hardwareMap, drive, false, telemetry, limelight);
         shooter.setAction(Shooter.ShooterActions.NoAction);
         telemetry.clear();
+
+        limelight.setPipeline(2);
 
         waitForStart();
         if (isStopRequested()) return;

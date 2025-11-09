@@ -19,7 +19,7 @@ public class BlueTeleopMecanumDrive extends LinearOpMode {
     @Override
     public void runOpMode() {
         // Change new Pose2d to match where you start out of auto
-        MecanumDrive drive = new MecanumDrive(hardwareMap, new Pose2d(0,0,0));
+        MecanumDrive drive = new MecanumDrive(hardwareMap, new Pose2d(0,0,0), false);
         double commandDegrees = 0;
         double rx = 0;
         PID turnController = new PID(0.02, 0, 0.0000001);
@@ -32,6 +32,8 @@ public class BlueTeleopMecanumDrive extends LinearOpMode {
         shooter.setAction(Shooter.ShooterActions.NoAction);
 
         telemetry.clear();
+
+        limelight.setPipeline(1);
 
         waitForStart();
         if (isStopRequested()) return;
