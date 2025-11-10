@@ -63,14 +63,13 @@ public class BlueTeleopMecanumDrive extends LinearOpMode {
             if (gamepad1.b) {
                 shooter.setAction(Shooter.ShooterActions.IntakeHuman);
             }
-
-//            if (gamepad1.b) {
+//          if (gamepad1.b) {
 //                shooter.setAction(Shooter.ShooterActions.AimAndSpinUp);
 //            }
             if (gamepad2.x) {
                 shooter.setAction(Shooter.ShooterActions.Shoot);
             }
-//            if (gamepad1.a) {
+//          if (gamepad1.a) {
 //                shooter.setAction(Shooter.ShooterActions.AlignAndAim);
 //            }
             if (gamepad1.a) {
@@ -119,7 +118,6 @@ public class BlueTeleopMecanumDrive extends LinearOpMode {
 
             telemetry.addData("Motor Command: ", rx);
 
-            telemetry.addData("Target: ", 1200);
             telemetry.addData("Shooter Top Actual", shooter.shootTop.getVelocity());
             telemetry.addData("Shooter Bottom Actual", shooter.shootBottom.getVelocity());
             telemetry.update();
