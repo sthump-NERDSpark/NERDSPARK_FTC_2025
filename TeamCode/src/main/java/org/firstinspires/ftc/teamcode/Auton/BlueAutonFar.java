@@ -11,13 +11,13 @@ import org.firstinspires.ftc.teamcode.LimelightManager;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 import org.firstinspires.ftc.teamcode.Shooter;
 
-@Autonomous(name = "RedAutonFar", group = "Comp")
-public class RedAutonFar extends LinearOpMode {
+@Autonomous(name = "BlueAutonFar", group = "Comp")
+public class BlueAutonFar extends LinearOpMode {
 
     // ---------------- FIELD / PATH CONSTANTS ----------------
     // Coordinate conventions:
     //  - X axis: forward toward the front wall
-    //  - Y axis: left from the blue alliance perspective (so red is mirrored → negative Y)
+    //  - Y axis: left from the blue alliance perspective
     //  - Heading 0 rad: facing the front wall
     //
     // Robot starts flat on the back wall, shooter facing front wall.
@@ -30,18 +30,18 @@ public class RedAutonFar extends LinearOpMode {
 
     private static final double FIRST_FORWARD_DIST = 8.0; // forward to first shooting line
 
-    // ---- MIRRORED VALUES FOR RED ----
-    // Corner artifact location after first 90° CW turn
-    private static final double FIRST_CORNER_Y = -40.0;   // negative Y (right side); tune on field
-    private static final double SECOND_ARTIFACT_X = 30.0; // forward distance for second pickup; tune
-    private static final double FINAL_SHOT_Y = 12.0;      // strafe left from second pickup; tune
+    // ---- BLUE-SIDE TARGET POSITIONS (TUNE THESE ON FIELD) ----
+    // Corner artifact location after first 90° CCW turn
+    private static final double FIRST_CORNER_Y = 40.0;    // positive Y (left side)
+    private static final double SECOND_ARTIFACT_X = 30.0; // forward distance for second pickup
+    private static final double FINAL_SHOT_Y = -12.0;     // strafe right from second pickup (negative Y)
 
     // Distance threshold for “within X inches of target”
     private static final double INTAKE_DISTANCE_INCHES = 3.0;
 
     @Override
     public void runOpMode() throws InterruptedException {
-        boolean allianceBlue = false;   // This is RED side
+        boolean allianceBlue = true;   // This is BLUE side
 
         // ---------- INIT SUBSYSTEMS ----------
         MecanumDrive drive = new MecanumDrive(hardwareMap, START_POSE);
@@ -53,7 +53,7 @@ public class RedAutonFar extends LinearOpMode {
 
         drive.localizer.setPose(START_POSE);
 
-        telemetry.addLine("RedAutonFar: Initialized. Waiting for start...");
+        telemetry.addLine("BlueAutonFar: Initialized. Waiting for start...");
         telemetry.update();
 
         waitForStart();
@@ -72,15 +72,15 @@ public class RedAutonFar extends LinearOpMode {
         // -------------------- STEP 2: FIRST SHOT (AimInPlaceClose + Shoot) --------------------
         aimAndShootClose(shooter, 1.5, 2.5);
 
-        // -------------------- STEP 3: TURN CLOCKWISE 90°, ZERO SHOOTER, DRIVE TO FIRST CORNER --------------------
-        // Turn CW to face the right-hand corner artifacts.
+        // -------------------- STEP 3: TURN CCW 90°, ZERO SHOOTER, DRIVE TO FIRST CORNER --------------------
+        // Turn CCW to face the left-hand corner artifacts.
         pose = drive.localizer.getPose();
 
-        Action turnCW90 = drive.actionBuilder(pose)
-                .turn(Math.toRadians(-90))
+        Action turnCCW90 = drive.actionBuilder(pose)
+                .turn(Math.toRadians(90))
                 .build();
 
-        Actions.runBlocking(turnCW90);
+        Actions.runBlocking(turnCCW90);
 
         // After turning, x should still be FIRST_FORWARD_DIST (≈ 8")
         pose = drive.localizer.getPose();
@@ -91,7 +91,7 @@ public class RedAutonFar extends LinearOpMode {
         shooter.setAction(Shooter.ShooterActions.ZeroPower);
         shooter.updateAction();
 
-        // Drive toward the red-side corner artifacts (negative Y).
+        // Drive toward the blue-side corner artifacts (positive Y).
         Action toFirstCorner = drive.actionBuilder(pose)
                 .lineToY(firstCornerTargetY)
                 .build();
@@ -99,19 +99,19 @@ public class RedAutonFar extends LinearOpMode {
         Actions.runBlocking(toFirstCorner);
         pose = drive.localizer.getPose();
 
-        // Now explicitly check: are we within 3" of the intended corner target?
+        // Explicit "within 3 inches" check before switching to INTAKE
         if (isWithinDistance(pose, firstCornerTargetX, firstCornerTargetY, INTAKE_DISTANCE_INCHES)) {
             shooter.setAction(Shooter.ShooterActions.Intake);
             shooter.updateAction();
         }
 
         // -------------------- STEP 4: RETURN TO ORIGINAL SHOT POSE --------------------
-        // Turn back CCW 90° to face front wall again.
+        // Turn back CW 90° to face front wall again.
         pose = drive.localizer.getPose();
-        Action turnCCW90 = drive.actionBuilder(pose)
-                .turn(Math.toRadians(90))
+        Action turnCW90 = drive.actionBuilder(pose)
+                .turn(Math.toRadians(-90))
                 .build();
-        Actions.runBlocking(turnCCW90);
+        Actions.runBlocking(turnCW90);
         pose = drive.localizer.getPose();
 
         shooter.setAction(Shooter.ShooterActions.ZeroPower);
@@ -153,16 +153,16 @@ public class RedAutonFar extends LinearOpMode {
             shooter.updateAction();
         }
 
-        // -------------------- STEP 6: PREP THIRD SHOT AND STRAFE LEFT TO FINAL SHOOT --------------------
+        // -------------------- STEP 6: PREP THIRD SHOT AND STRAFE RIGHT TO FINAL SHOOT --------------------
         // Start aiming at current position
         shooter.setAction(Shooter.ShooterActions.AimInPLaceClose);
         runShooterForTime(shooter, 0.5);
 
         pose = drive.localizer.getPose();
         double finalShotTargetX = secondArtifactTargetX;   // only changing Y here
-        double finalShotTargetY = FINAL_SHOT_Y;
+        double finalShotTargetY = FINAL_SHOT_Y;            // negative Y → strafe right
 
-        // Strafe left (positive Y) to final shooting lane
+        // Strafe right (negative Y) to final shooting lane
         Action strafeToFinalShot = drive.actionBuilder(pose)
                 .lineToY(finalShotTargetY)
                 .build();
@@ -177,12 +177,16 @@ public class RedAutonFar extends LinearOpMode {
         shooter.setAction(Shooter.ShooterActions.ZeroPower);
         shooter.updateAction();
 
-        telemetry.addLine("RedAutonFar complete.");
+        telemetry.addLine("BlueAutonFar complete.");
         telemetry.update();
     }
 
     /**
      * Helper to aim & shoot using Limelight.
+     * AimInPLaceClose:
+     *  - uses Limelight Ty to set shooter velocities & pivot angle
+     * Shoot:
+     *  - uses motorsAtVelocity(...) to gate servo firing.
      */
     private void aimAndShootClose(Shooter shooter, double aimTimeSec, double shootTimeSec) {
         ElapsedTime timer = new ElapsedTime();
