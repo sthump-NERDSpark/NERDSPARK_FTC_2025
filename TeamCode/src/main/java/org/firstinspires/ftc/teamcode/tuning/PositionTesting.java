@@ -4,7 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 
-@TeleOp
+@TeleOp(name = "Positioning Test", group = "util")
 public class PositionTesting extends LinearOpMode {
 
     @Override

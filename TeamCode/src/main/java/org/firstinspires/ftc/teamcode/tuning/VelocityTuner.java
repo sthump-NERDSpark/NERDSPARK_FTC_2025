@@ -15,7 +15,7 @@ import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigu
 import org.firstinspires.ftc.teamcode.Util.TuningController;
 
 @Config
-@TeleOp
+@TeleOp(name = "Velocity Tuner", group = "util")
 public class VelocityTuner extends LinearOpMode {
     public static PIDFCoefficients MOTOR_VELO_PID = new PIDFCoefficients(0, 0, 0, 0);
 

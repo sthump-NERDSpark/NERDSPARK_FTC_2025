@@ -14,7 +14,7 @@ import org.firstinspires.ftc.teamcode.MecanumDrive;
 import org.firstinspires.ftc.teamcode.Shooter;
 import org.firstinspires.ftc.teamcode.Util.PID;
 
-@TeleOp(name = "Red Teleop for Mecanum Drive")
+@TeleOp(name = "Red Teleop for Mecanum Drive", group = "comp")
 public class RedTeleopMecanumDrive extends LinearOpMode {
     @Override
     public void runOpMode() {
@@ -33,7 +33,7 @@ public class RedTeleopMecanumDrive extends LinearOpMode {
 
         telemetry.clear();
 
-        limelight.setPipeline(2);
+        limelight.setPipeline(1);
 
         waitForStart();
         if (isStopRequested()) return;
@@ -75,9 +75,9 @@ public class RedTeleopMecanumDrive extends LinearOpMode {
             if (gamepad1.a) {
                 shooter.setAction(Shooter.ShooterActions.Intake);
             }
-            if (gamepad2.b) {
-                shooter.setAction(Shooter.ShooterActions.AimInPlaceFar);
-            }
+//            if (gamepad2.b) {
+//                shooter.setAction(Shooter.ShooterActions.AimInPlaceFar);
+//            }
             if (gamepad2.right_trigger > 0.25) {
                 shooter.setAction(Shooter.ShooterActions.AimInPLaceClose);
             }
@@ -92,6 +92,7 @@ public class RedTeleopMecanumDrive extends LinearOpMode {
             }
             if (gamepad2.left_bumper) {
                 shooter.setAction(Shooter.ShooterActions.Park);
+                commandDegrees = 0;
             }
 
             shooter.getPose();
@@ -99,12 +100,13 @@ public class RedTeleopMecanumDrive extends LinearOpMode {
             drive.localizer.update();
 
             if (gamepad1.left_bumper) {
+                shooter.setAction(Shooter.ShooterActions.AimInPLaceClose);
                 if (limelight.angleToGoal() > -9) {
                     rx = limelight.angleToGoal();
                     commandDegrees = Math.toDegrees(drive.localizer.getPose().heading.toDouble());
-                    shooter.setAction(Shooter.ShooterActions.AimInPlaceFar);
+
                 } else {
-                    commandDegrees = -45;
+                    commandDegrees = 45;
                     rx = turnController.calculate(Math.toDegrees(drive.localizer.getPose().heading.toDouble()), commandDegrees);
                 }
             } else {

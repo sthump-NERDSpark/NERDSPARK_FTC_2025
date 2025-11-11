@@ -202,14 +202,14 @@ public class Shooter {
 //    }
 
     private void AimInPlaceFar() {
-        shooterBottomVelocity = 1200;
+        shooterBottomVelocity = 1400;
         shooterTopVelocity = 1550;
 
         double command = controller.calculatePosition(110, getPotPosition());
         pivotLeft.setPower(command);
         pivotRight.setPower(command);
 
-        if (Math.abs(getPotPosition()) >= 95) {
+        if (Math.abs(getPotPosition()) >= 100) {
             telemetry.addLine("Spinning up wheels");
             shootTop.setVelocity(shooterTopVelocity);
             shootBottom.setVelocity(shooterBottomVelocity);
@@ -228,11 +228,11 @@ public class Shooter {
         }
         shooterTopVelocity = 1550;
 
-        double command = controller.calculatePosition(110, getPotPosition());
+        double command = controller.calculatePosition(115, getPotPosition());
         pivotLeft.setPower(command);
         pivotRight.setPower(command);
 
-        if (Math.abs(getPotPosition()) >= 95) {
+        if (Math.abs(getPotPosition()) >= 105) {
             telemetry.addLine("Spinning up wheels");
             shootTop.setVelocity(shooterTopVelocity);
             shootBottom.setVelocity(shooterBottomVelocity);
@@ -263,11 +263,17 @@ public class Shooter {
         {
             velocityTolCounter= 0;
         }
-        else{
+        else
+        {
             velocityTolCounter ++;
         }
+        boolean velocityState = velocityTolCounter > velocityTolTimeOut;
+        if (velocityState)
+        {
+            velocityTolCounter = 0;
+        }
 
-        return (velocityTolCounter> velocityTolTimeOut);
+        return (velocityState);
     }
 
     private void Shoot() {
@@ -279,13 +285,13 @@ public class Shooter {
         Servo[] sequence = new Servo[]{kickLeft, kickCenter, kickRight};
 
         // ResetAndWait until motors are at target velocity
-        if (motorsAtVelocity(shooterTopConfig, shooterBottomConfig)) { //shooterTopVelocity, shooterBottomVelocity
+        if (motorsAtVelocity(shooterTopVelocity, shooterBottomVelocity)) { //shooterTopVelocity, shooterBottomVelocity
             Servo servo = sequence[servoCounter];
             // Move the current servo
             servo.setPosition(0.85);
             telemetry.addLine("Moved servo");
             if (!waitStarted) {
-                shootWaiter.startWait(750);
+                shootWaiter.startWait(250);
                 waitStarted = true;
             }
             if (shootWaiter.isDone()) {
@@ -298,7 +304,7 @@ public class Shooter {
         }
         if (servoCounter > 2) {
             servoCounter = 0;
-            currentAction = ShooterActions.Intake;
+            currentAction = ShooterActions.ZeroPower;
         }
     }
 
@@ -374,19 +380,19 @@ public class Shooter {
         double command = controller.calculatePosition(-1, getPotPosition());
         pivotLeft.setPower(command);
         pivotRight.setPower(command);
-        kickCenter.setPosition(0.85);
-        kickLeft.setPosition(0.85);
-        kickRight.setPosition(0.85);
+        kickCenter.setPosition(0.65);
+        kickLeft.setPosition(0.65);
+        kickRight.setPosition(0.65);
         shootTop.setPower(-0.5);
         shootBottom.setPower(0);
     }
     private void IntakeHuman() {
-        double command = controller.calculatePosition(100, getPotPosition());
+        double command = controller.calculatePosition(110, getPotPosition());
         pivotLeft.setPower(command);
         pivotRight.setPower(command);
-        kickCenter.setPosition(0.85);
-        kickLeft.setPosition(0.85);
-        kickRight.setPosition(0.85);
+        kickCenter.setPosition(0.65);
+        kickLeft.setPosition(0.65);
+        kickRight.setPosition(0.65);
         shootTop.setPower(-0.25);
         shootBottom.setPower(-0.25);
     }
@@ -395,9 +401,9 @@ public class Shooter {
         shootTop.setVelocity(0);
         shootBottom.setVelocity(0);
         double command = controller.calculatePosition(25, getPotPosition());
-        kickCenter.setPosition(0.85);
-        kickLeft.setPosition(0.85);
-        kickRight.setPosition(0.85);
+        kickCenter.setPosition(0.65);
+        kickLeft.setPosition(0.65);
+        kickRight.setPosition(0.65);
         pivotLeft.setPower(command);
         pivotRight.setPower(command);
     }
@@ -405,8 +411,9 @@ public class Shooter {
     private void Park() {
         shootTop.setVelocity(0);
         shootBottom.setVelocity(0);
-        pivotLeft.setPower(0);
-        pivotRight.setPower(0);
+        double command = controller.calculatePosition(110, getPotPosition());
+        pivotLeft.setPower(command);
+        pivotRight.setPower(command);
 //        waiter.startWait(500);
 //        if (waiter.isDone()) {
 //          park.setPosition(0.1);

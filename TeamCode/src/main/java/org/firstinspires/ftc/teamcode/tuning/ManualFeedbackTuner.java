@@ -3,9 +3,10 @@ package org.firstinspires.ftc.teamcode.tuning;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.MecanumDrive;
-
+@TeleOp(name = "Manual Feedback Tuner", group = "util")
 public final class ManualFeedbackTuner extends LinearOpMode {
     public static double DISTANCE = 64;
 
