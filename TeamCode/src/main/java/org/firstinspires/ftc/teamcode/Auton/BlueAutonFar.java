@@ -1,16 +1,20 @@
 package org.firstinspires.ftc.teamcode.Auton;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.Pose2d;
+import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import org.firstinspires.ftc.robotcore.external.Telemetry;
+
 
 import org.firstinspires.ftc.teamcode.LimelightManager;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 import org.firstinspires.ftc.teamcode.Shooter;
-
+@Config
 @Autonomous(name = "BlueAutonFar", group = "Comp")
 public class BlueAutonFar extends LinearOpMode {
 
@@ -22,10 +26,14 @@ public class BlueAutonFar extends LinearOpMode {
     //
     // Robot starts flat on the back wall, shooter facing front wall.
 
+    public static double firstpointAngle = 110;
+    public static double firstpointX = 0;
+    public static double firstpointY = 10;
+
     private static final Pose2d START_POSE = new Pose2d(
             0.0,  // x in inches
             0.0,  // y in inches
-            0.0   // heading in radians (facing +X, front wall)
+            Math.toRadians(90)   // heading in radians (facing +X, front wall)
     );
 
     private static final double FIRST_FORWARD_DIST = 8.0; // forward to first shooting line
@@ -59,18 +67,20 @@ public class BlueAutonFar extends LinearOpMode {
         waitForStart();
         if (isStopRequested()) return;
 
+        shooter.setAction(Shooter.ShooterActions.AimInPLaceClose);
+
         // -------------------- STEP 1: DRIVE FORWARD 8" TO FIRST SHOT --------------------
         Pose2d pose = drive.localizer.getPose();
 
         Action forwardToFirstShot = drive.actionBuilder(pose)
-                .lineToX(pose.position.x + FIRST_FORWARD_DIST)
+                .splineTo(new Vector2d(firstpointX,firstpointY), Math.toRadians(firstpointAngle))
                 .build();
 
         Actions.runBlocking(forwardToFirstShot);
         pose = drive.localizer.getPose();
 
         // -------------------- STEP 2: FIRST SHOT (AimInPlaceClose + Shoot) --------------------
-        aimAndShootClose(shooter, 1.5, 2.5);
+        aimAndShootClose(shooter, 1, 10);
 
         // -------------------- STEP 3: TURN CCW 90°, ZERO SHOOTER, DRIVE TO FIRST CORNER --------------------
         // Turn CCW to face the left-hand corner artifacts.
@@ -195,12 +205,17 @@ public class BlueAutonFar extends LinearOpMode {
         timer.reset();
         while (opModeIsActive() && timer.seconds() < aimTimeSec) {
             shooter.updateAction();
+            telemetry.addData("aim timer", timer.seconds());
+            telemetry.update();
+
         }
 
         shooter.setAction(Shooter.ShooterActions.Shoot);
         timer.reset();
         while (opModeIsActive() && timer.seconds() < shootTimeSec) {
             shooter.updateAction();
+            telemetry.addData("shoot timer", timer.seconds());
+            telemetry.update();
         }
     }
 

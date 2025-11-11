@@ -1,11 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.acmerobotics.dashboard.config.Config;
-import com.acmerobotics.roadrunner.TimeTurn;
-import com.acmerobotics.roadrunner.Vector2d;
-import com.qualcomm.hardware.limelightvision.LLResult;
-import com.qualcomm.hardware.limelightvision.Limelight3A;
-import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -13,15 +8,11 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.JavaUtil;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.internal.camera.delegating.DelegatingCaptureSequence;
 import org.firstinspires.ftc.teamcode.Util.PID;
 import org.firstinspires.ftc.teamcode.Util.TimerWait;
-import org.firstinspires.ftc.teamcode.LimelightManager;
 
 @Config
 public class Shooter {
@@ -30,6 +21,8 @@ public class Shooter {
     public static double shooterAngle = 0;
     public static int velocityTolTimeOut = 3;
     public static double VELOCITY_TOLERANCE = 60;
+
+    public static double inatkePos = 8;
     public enum ShooterActions {
         Intake,
         IntakeHuman,
@@ -222,8 +215,9 @@ public class Shooter {
         if (Ty == null)
         {
             shooterBottomVelocity = 1000;
-        }
-        else {
+        } else if (Ty < - 10) {
+            shooterBottomVelocity = 1425;
+        } else {
             shooterBottomVelocity = 3.5579 * Ty * Ty - 17.578 * Ty + 709.34;
         }
         shooterTopVelocity = 1550;
@@ -283,6 +277,16 @@ public class Shooter {
         }
 //        Servo[] sequence = getServoOrder(shotOrder);
         Servo[] sequence = new Servo[]{kickLeft, kickCenter, kickRight};
+        Double Ty = limelight.getTy();
+
+        if (Ty == null)
+        {
+            shooterBottomVelocity = 1000;
+        }
+        else {
+            shooterBottomVelocity = 3.5579 * Ty * Ty - 17.578 * Ty + 709.34;
+        }
+        shooterTopVelocity = 1550;
 
         // ResetAndWait until motors are at target velocity
         if (motorsAtVelocity(shooterTopVelocity, shooterBottomVelocity)) { //shooterTopVelocity, shooterBottomVelocity
@@ -377,7 +381,7 @@ public class Shooter {
 //    }
 
     private void Intake() {
-        double command = controller.calculatePosition(-1, getPotPosition());
+        double command = controller.calculatePosition(inatkePos, getPotPosition());
         pivotLeft.setPower(command);
         pivotRight.setPower(command);
         kickCenter.setPosition(0.65);
