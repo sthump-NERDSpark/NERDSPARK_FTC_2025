@@ -8,6 +8,8 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 public class Shooter {
+    private boolean shootSeqActive = false;
+    private final ElapsedTime shootTimer = new ElapsedTime();
     public enum ShooterActions {
         Intake,
         SpinUpWheels,
@@ -16,8 +18,8 @@ public class Shooter {
         IntakeOFF,
         NoAction
     }
-    private ShooterActions currentAction = ShooterActions.NoAction;
 
+    private ShooterActions currentAction = ShooterActions.NoAction;
     public final DcMotorEx shootLeft;
     public final DcMotorEx shootRight;
     private final DcMotorEx intake;
@@ -37,12 +39,17 @@ public class Shooter {
         shootRight.setDirection(DcMotorSimple.Direction.REVERSE);
         intake.setDirection(DcMotorSimple.Direction.REVERSE);
 
+        shootLeft.setVelocityPIDFCoefficients(100,0.05,0,13);
+        shootRight.setVelocityPIDFCoefficients(100,0.05,0,13);
+
         shootLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         shootRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         servo = hardwareMap.get(Servo.class, "servo");
         servo.setDirection(Servo.Direction.REVERSE);
     }
+
+
 
    public void setAction(ShooterActions action) {
         this.currentAction = action;
@@ -59,33 +66,43 @@ public class Shooter {
    }
 
     private void SpinUpWheels() {
-        shootLeft.setVelocityPIDFCoefficients(100,0.05,0,13);
-        shootRight.setVelocityPIDFCoefficients(100,0.05,0,13);
+
         shootLeft.setVelocity(1000);
         shootRight.setVelocity(1000);
     }
 
     private void Shoot() {
-        intake.setPower(0);
-        conveyor.setPower(1);
-        shootLeft.setVelocityPIDFCoefficients(100,0.05,0,13);
-        shootRight.setVelocityPIDFCoefficients(100,0.05,0,13);
+    //    intake.setPower(0);
+    //    conveyor.setPower(1);
+        double firstTime = 350;
+        double secondTime = 700;
+        double thirdTime = 1050;
+        double resetTime = 1400;
+
+        if (!shootSeqActive) {
+            shootSeqActive = true;
+            shootTimer.reset();
+        }
         shootLeft.setVelocity(1000);
         shootRight.setVelocity(1000);
 
-        servo.setPosition(0.128);
-        Wait(750);
-        servo.setPosition(0.201);
-        Wait(1000);
-        servo.setPosition(0.24);
-        Wait(750);
-        servo.setPosition(0.058);
-        conveyor.setPower(0);
-        shootLeft.setVelocity(0);
-        shootRight.setVelocity(0);
-        currentAction = ShooterActions.Intake;
-    }
+        double timer = shootTimer.milliseconds();
+        if (timer >= firstTime && timer < secondTime) {
+            servo.setPosition(0.128);
+        }
+        else if (timer >= secondTime && timer < thirdTime) {
+            servo.setPosition(0.201);
+        }
+        else if (timer >= thirdTime && timer < resetTime) {
+            servo.setPosition(0.24);
+        }
+        else if (timer >= resetTime) {
+            servo.setPosition(0.058);
+            currentAction = ShooterActions.ShooterOFF;
+            shootSeqActive = false;
+        }
 
+    }
     private void Intake() {
         shootLeft.setVelocity(0);
         shootRight.setVelocity(0);
@@ -103,18 +120,5 @@ public class Shooter {
     private void IntakeOff() {
         intake.setPower(0);
         conveyor.setPower(0);
-    }
-
-    /**
-     * Time should be in milliseconds
-     */
-    private void Wait(double time) {
-        ElapsedTime timer = new ElapsedTime();
-
-        while (true) {
-            if (timer.milliseconds() >= time) {
-                break;
-            }
-        }
     }
 }
