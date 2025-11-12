@@ -56,6 +56,8 @@ public class RedAutonFar extends LinearOpMode {
         telemetry.addLine("RedAutonFar: Initialized. Waiting for start...");
         telemetry.update();
 
+        limelight.setPipeline(1);
+
         waitForStart();
         if (isStopRequested()) return;
 

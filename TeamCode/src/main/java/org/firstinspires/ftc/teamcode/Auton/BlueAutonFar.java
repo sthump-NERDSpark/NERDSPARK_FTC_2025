@@ -50,7 +50,7 @@ public class BlueAutonFar extends LinearOpMode {
 
         // Optionally set a dedicated pipeline for auto aiming
         // limelight.setPipeline(1);
-
+        limelight.setPipeline(0);
         drive.localizer.setPose(START_POSE);
 
         telemetry.addLine("BlueAutonFar: Initialized. Waiting for start...");
