@@ -36,7 +36,8 @@ public class Shooter {
         shootLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         shootRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
 
-        shootRight.setDirection(DcMotorSimple.Direction.REVERSE);
+        shootRight.setDirection(DcMotorSimple.Direction.FORWARD);
+        shootLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         intake.setDirection(DcMotorSimple.Direction.REVERSE);
 
         shootLeft.setVelocityPIDFCoefficients(100,0.05,0,13);
