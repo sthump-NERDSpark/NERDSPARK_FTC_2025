@@ -79,6 +79,9 @@ public class BlueTeleopMecanumDrive extends LinearOpMode {
             if (gamepad2.b) {
                 shooter.setAction(Shooter.ShooterActions.Intake);
             }
+            if (gamepad2.y) {
+                shooter.setAction(Shooter.ShooterActions.IntakeReverse);
+            }
             if (gamepad2.right_bumper) {
                 shooter.setAction(Shooter.ShooterActions.ShooterOFF);
             }

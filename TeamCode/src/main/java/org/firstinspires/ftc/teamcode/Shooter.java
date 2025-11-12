@@ -16,7 +16,7 @@ public class Shooter {
         Shoot,
         ShooterOFF,
         IntakeOFF,
-        NoAction
+        IntakeReverse, NoAction
     }
 
     private ShooterActions currentAction = ShooterActions.NoAction;
@@ -63,6 +63,7 @@ public class Shooter {
             case Intake: Intake(); break;
             case ShooterOFF: ShooterOff(); break;
             case IntakeOFF: IntakeOff(); break;
+            case IntakeReverse: IntakeReverse();; break;
         }
    }
 
@@ -75,10 +76,11 @@ public class Shooter {
     private void Shoot() {
     //    intake.setPower(0);
     //    conveyor.setPower(1);
-        double firstTime = 350;
-        double secondTime = 700;
-        double thirdTime = 1050;
-        double resetTime = 1400;
+        double deltaTime = 500;
+        double firstTime = 100;
+        double secondTime = firstTime + deltaTime;
+        double thirdTime = secondTime + deltaTime;
+        double resetTime = thirdTime + deltaTime;
 
         if (!shootSeqActive) {
             shootSeqActive = true;
@@ -86,6 +88,7 @@ public class Shooter {
         }
         shootLeft.setVelocity(1000);
         shootRight.setVelocity(1000);
+        conveyor.setPower(1);
 
         double timer = shootTimer.milliseconds();
         if (timer >= firstTime && timer < secondTime) {
@@ -98,7 +101,7 @@ public class Shooter {
             servo.setPosition(0.24);
         }
         else if (timer >= resetTime) {
-            servo.setPosition(0.058);
+            servo.setPosition(0.060);
             currentAction = ShooterActions.ShooterOFF;
             shootSeqActive = false;
         }
@@ -107,7 +110,7 @@ public class Shooter {
     private void Intake() {
         shootLeft.setVelocity(0);
         shootRight.setVelocity(0);
-        servo.setPosition(0.058);
+        servo.setPosition(0.060);
 
         conveyor.setPower(1);
         intake.setPower(1);
@@ -116,10 +119,16 @@ public class Shooter {
     private void ShooterOff() {
         shootLeft.setVelocity(0);
         shootRight.setVelocity(0);
+        conveyor.setPower(0);
     }
 
     private void IntakeOff() {
         intake.setPower(0);
         conveyor.setPower(0);
+    }
+
+    private void IntakeReverse() {
+        intake.setPower(-1);
+        conveyor.setPower(-1);
     }
 }
