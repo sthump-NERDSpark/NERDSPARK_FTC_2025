@@ -34,7 +34,8 @@ public class Shooter {
         shootLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         shootRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
 
-        shootRight.setDirection(DcMotorSimple.Direction.REVERSE);
+        shootRight.setDirection(DcMotorSimple.Direction.FORWARD);
+        shootLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         intake.setDirection(DcMotorSimple.Direction.REVERSE);
 
         shootLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -74,11 +75,11 @@ public class Shooter {
         shootRight.setVelocity(1000);
 
         servo.setPosition(0.128);
-        Wait(750);
+        Wait(250);
         servo.setPosition(0.201);
-        Wait(1000);
+        Wait(250);
         servo.setPosition(0.24);
-        Wait(750);
+        Wait(250);
         servo.setPosition(0.058);
         conveyor.setPower(0);
         shootLeft.setVelocity(0);
