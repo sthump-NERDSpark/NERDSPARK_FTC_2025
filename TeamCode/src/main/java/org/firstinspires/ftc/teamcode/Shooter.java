@@ -14,15 +14,19 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.Util.PID;
 import org.firstinspires.ftc.teamcode.Util.TimerWait;
 
+import com.qualcomm.robotcore.util.ElapsedTime;
+
 @Config
 public class Shooter {
+    private boolean shootSeqActive = false;
+    private final ElapsedTime shootTimer = new ElapsedTime();
     public static double shooterTopConfig = 0;
     public static double shooterBottomConfig = 0;
     public static double shooterAngle = 0;
     public static int velocityTolTimeOut = 3;
     public static double VELOCITY_TOLERANCE = 60;
 
-    public static double inatkePos = 8;
+    public static double intakePos = 8;
     public enum ShooterActions {
         Intake,
         IntakeHuman,
@@ -84,7 +88,6 @@ public class Shooter {
         this.alliance_blue = alliance;
         this.telemetry = telemetry;
         this.limelight = ll;
-
 
         shootTop = hardwareMap.get(DcMotorEx.class, "shootTop");
         shootBottom = hardwareMap.get(DcMotorEx.class, "shootBottom");
@@ -160,41 +163,9 @@ public class Shooter {
         if (Math.abs(getPotPosition()) >= 95) {
             shootTop.setVelocity(shooterTopConfig);
             shootBottom.setVelocity(shooterBottomConfig);
-//            Shoot();
         }
-//        telemetry.addData("LL TY: ", limelight.getDistance(alliance_blue));
-        telemetry.update();
     }
-
-    /**
-     * This action aims the shooter and spins up the motors
-     * Uses odo position
-     * Can be changed to use limelight distance to tag
-     */
-//    private void AimAndSpinUp() {
-//        if (limelight.getDistance(alliance_blue) > 0) {
-//            Result r = findBestShot(limelight.getDistance(alliance_blue), 15,
-//                    0, 110, 43, 500, 1200,
-//                    5, 10, 1.2);
-//
-//            shooterTopVelocity = r.topMotorDegPerSec;
-//            shooterBottomVelocity = r.bottomMotorDegPerSec;
-//
-//            double command = controller.calculate(r.angleDeg, getPotPosition());
-//            pivotLeft.setPower(command);
-//            pivotRight.setPower(command);
-//
-//            if (Math.abs(r.angleDeg - getPotPosition()) <= 5) {
-//                shootTop.setVelocity(shooterTopVelocity, AngleUnit.DEGREES);
-//                shootBottom.setVelocity(shooterBottomVelocity, AngleUnit.DEGREES);
-//            }
-//        } else {
-//            telemetry.addLine("To Close To Read Tag!");
-//            telemetry.update();
-//        }
-//    }
-
-    private void AimInPlaceFar() {
+      private void AimInPlaceFar() {
         shooterBottomVelocity = 1400;
         shooterTopVelocity = 1550;
 
@@ -230,6 +201,10 @@ public class Shooter {
             telemetry.addLine("Spinning up wheels");
             shootTop.setVelocity(shooterTopVelocity);
             shootBottom.setVelocity(shooterBottomVelocity);
+        }
+        else {
+            shootTop.setVelocity(-900);
+            shootBottom.setVelocity(-900);
         }
     }
 
@@ -272,6 +247,18 @@ public class Shooter {
 
     private void Shoot() {
         telemetry.addLine("Started shooting");
+
+        double deltaTime = 500;
+        double firstTime = 100;
+        double secondTime = firstTime + deltaTime;
+        double thirdTime = secondTime + deltaTime;
+        double resetTime = thirdTime + deltaTime;
+
+        if (!shootSeqActive) {
+            shootSeqActive = true;
+            shootTimer.reset();
+        }
+
         if (shotOrder == null) {
             getServoOrder();
         }
@@ -289,26 +276,35 @@ public class Shooter {
         shooterTopVelocity = 1550;
 
         // ResetAndWait until motors are at target velocity
-        if (motorsAtVelocity(shooterTopVelocity, shooterBottomVelocity)) { //shooterTopVelocity, shooterBottomVelocity
-            Servo servo = sequence[servoCounter];
+        double timer = shootTimer.milliseconds();
+
+        if (timer >= firstTime && timer < secondTime) { //shooterTopVelocity, shooterBottomVelocity
             // Move the current servo
-            servo.setPosition(0.85);
-            telemetry.addLine("Moved servo");
-            if (!waitStarted) {
-                shootWaiter.startWait(250);
-                waitStarted = true;
-            }
-            if (shootWaiter.isDone()) {
-                servo.setPosition(0.65);
-                servoCounter++;
-                waitStarted = false;
-            }
-        } else {
-            telemetry.addLine("Wheels not at speed!");
-        }
-        if (servoCounter > 2) {
             servoCounter = 0;
+            Servo servo = sequence[servoCounter];
+            servo.setPosition(0.85);
+
+        }
+        else if (timer >= secondTime && timer < thirdTime) { //shooterTopVelocity, shooterBottomVelocity
+            // Move the current servo
+            servoCounter = 1;
+            Servo servo = sequence[servoCounter];
+            servo.setPosition(0.85);
+        }
+        else if (timer >= thirdTime && timer < resetTime) { //shooterTopVelocity, shooterBottomVelocity
+            // Move the current servo
+            servoCounter = 2;
+            Servo servo = sequence[servoCounter];
+            servo.setPosition(0.85);
+
+        }
+        else if (timer >= resetTime) { //shooterTopVelocity, shooterBottomVelocity
+            // Move the current servo
+            kickCenter.setPosition(0.65);
+            kickLeft.setPosition(0.65);
+            kickRight.setPosition(0.65);
             currentAction = ShooterActions.ZeroPower;
+            shootSeqActive = false;
         }
     }
 
@@ -371,24 +367,16 @@ public class Shooter {
      * Can take currPose from limelight or odo
      * Can be changed to use limelight distance to tag
      */
-//    private void alignAndAim() {
-//        this.Drive.localizer.update();
-//        //Target X - actual X, target Y - actual Y
-//        double heading = Math.atan2((this.alliance_blue? blueGoalPose.x : redGoalPose.x) - limelight.getBotPose().position.x,
-//                (this.alliance_blue? blueGoalPose.y : redGoalPose.y) - limelight.getBotPose().position.y);
-//        this.Drive.new TurnAction(new TimeTurn(this.Drive.localizer.getPose(), heading, this.Drive.defaultTurnConstraints));
-//        //AimAndSpinUp();
-//    }
 
     private void Intake() {
-        double command = controller.calculatePosition(inatkePos, getPotPosition());
+        double command = controller.calculatePosition(intakePos, getPotPosition());
         pivotLeft.setPower(command);
         pivotRight.setPower(command);
         kickCenter.setPosition(0.65);
         kickLeft.setPosition(0.65);
         kickRight.setPosition(0.65);
-        shootTop.setPower(-0.5);
-        shootBottom.setPower(0);
+        shootTop.setVelocity(-900);
+        shootBottom.setVelocity(0);
     }
     private void IntakeHuman() {
         double command = controller.calculatePosition(110, getPotPosition());
@@ -397,8 +385,8 @@ public class Shooter {
         kickCenter.setPosition(0.65);
         kickLeft.setPosition(0.65);
         kickRight.setPosition(0.65);
-        shootTop.setPower(-0.25);
-        shootBottom.setPower(-0.25);
+        shootTop.setVelocity(-900);
+        shootBottom.setVelocity(-900);
     }
 
     private void ZeroPower() {
@@ -418,9 +406,6 @@ public class Shooter {
         double command = controller.calculatePosition(110, getPotPosition());
         pivotLeft.setPower(command);
         pivotRight.setPower(command);
-//        waiter.startWait(500);
-//        if (waiter.isDone()) {
-//          park.setPosition(0.1);
-//        }
+
     }
 }

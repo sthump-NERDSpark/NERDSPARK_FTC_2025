@@ -78,9 +78,9 @@ public class RedTeleopMecanumDrive extends LinearOpMode {
 //            if (gamepad2.b) {
 //                shooter.setAction(Shooter.ShooterActions.AimInPlaceFar);
 //            }
-            if (gamepad2.right_trigger > 0.25) {
-                shooter.setAction(Shooter.ShooterActions.AimInPLaceClose);
-            }
+ //           if (gamepad2.right_trigger > 0.25) {
+ //               shooter.setAction(Shooter.ShooterActions.AimInPLaceClose);
+ //           }
             if (gamepad2.right_bumper || gamepad1.right_bumper) {
                 shooter.setAction(Shooter.ShooterActions.ZeroPower);
             }
