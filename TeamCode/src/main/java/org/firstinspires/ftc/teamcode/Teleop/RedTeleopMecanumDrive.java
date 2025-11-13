@@ -47,7 +47,7 @@ public class RedTeleopMecanumDrive extends LinearOpMode {
                 commandDegrees += 0.5;
             }
 
-            if(gamepad1.dpad_down) {
+            if (gamepad1.dpad_down) {
                 if (Math.toDegrees(drive.localizer.getPose().heading.toDouble()) < 0) {
                     commandDegrees = -180;
                 } else {
@@ -63,23 +63,14 @@ public class RedTeleopMecanumDrive extends LinearOpMode {
             if (gamepad1.b) {
                 shooter.setAction(Shooter.ShooterActions.IntakeHuman);
             }
-//          if (gamepad1.b) {
-//                shooter.setAction(Shooter.ShooterActions.AimAndSpinUp);
-//            }
             if (gamepad2.x) {
                 shooter.setAction(Shooter.ShooterActions.Shoot);
             }
-//          if (gamepad1.a) {
-//                shooter.setAction(Shooter.ShooterActions.AlignAndAim);
-//            }
             if (gamepad1.a) {
                 shooter.setAction(Shooter.ShooterActions.Intake);
             }
-//            if (gamepad2.b) {
-//                shooter.setAction(Shooter.ShooterActions.AimInPlaceFar);
-//            }
-            if (gamepad2.right_trigger > 0.25) {
-                shooter.setAction(Shooter.ShooterActions.AimInPLaceClose);
+            if (gamepad2.b) {
+                shooter.setAction(Shooter.ShooterActions.Unjam);
             }
             if (gamepad2.right_bumper || gamepad1.right_bumper) {
                 shooter.setAction(Shooter.ShooterActions.ZeroPower);

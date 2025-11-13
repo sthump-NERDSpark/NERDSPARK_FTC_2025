@@ -32,7 +32,7 @@ public class Shooter {
         AimInPLaceClose,
         ZeroPower,
         Park,
-        NoAction
+        Unjam, NoAction
     }
     private ShooterActions currentAction;
     private final MecanumDrive Drive;
@@ -138,6 +138,7 @@ public class Shooter {
             case AimInPlaceFar: AimAndSpinUpConfig(); break; //AimInPlaceFar(); break;
             case AimInPLaceClose: AimInPlaceClose(); break;
             case ZeroPower: ZeroPower(); break;
+            case Unjam: Unjam(); break;
             case Park: Park(); break;
         }
     }
@@ -390,6 +391,16 @@ public class Shooter {
         shootTop.setPower(-0.5);
         shootBottom.setPower(0);
     }
+    private void Unjam() {
+        double command = controller.calculatePosition(115, getPotPosition());
+        pivotLeft.setPower(command);
+        pivotRight.setPower(command);
+        kickCenter.setPosition(0.65);
+        kickLeft.setPosition(0.65);
+        kickRight.setPosition(0.65);
+        shootTop.setPower(-1);
+        shootBottom.setPower(-1);
+    }
     private void IntakeHuman() {
         double command = controller.calculatePosition(110, getPotPosition());
         pivotLeft.setPower(command);
@@ -397,8 +408,8 @@ public class Shooter {
         kickCenter.setPosition(0.65);
         kickLeft.setPosition(0.65);
         kickRight.setPosition(0.65);
-        shootTop.setPower(-0.25);
-        shootBottom.setPower(-0.25);
+        shootTop.setPower(-0.5);
+        shootBottom.setPower(-0.5);
     }
 
     private void ZeroPower() {
