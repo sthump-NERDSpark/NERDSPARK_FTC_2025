@@ -63,15 +63,9 @@ public class RedTeleopMecanumDrive extends LinearOpMode {
             if (gamepad1.b) {
                 shooter.setAction(Shooter.ShooterActions.IntakeHuman);
             }
-//          if (gamepad1.b) {
-//                shooter.setAction(Shooter.ShooterActions.AimAndSpinUp);
-//            }
             if (gamepad2.x) {
                 shooter.setAction(Shooter.ShooterActions.Shoot);
             }
-//          if (gamepad1.a) {
-//                shooter.setAction(Shooter.ShooterActions.AlignAndAim);
-//            }
             if (gamepad1.a) {
                 shooter.setAction(Shooter.ShooterActions.Intake);
             }
@@ -92,7 +86,7 @@ public class RedTeleopMecanumDrive extends LinearOpMode {
             }
             if (gamepad2.left_bumper) {
                 shooter.setAction(Shooter.ShooterActions.Park);
-                commandDegrees = 0;
+                commandDegrees = 180;
             }
 
             shooter.getPose();
