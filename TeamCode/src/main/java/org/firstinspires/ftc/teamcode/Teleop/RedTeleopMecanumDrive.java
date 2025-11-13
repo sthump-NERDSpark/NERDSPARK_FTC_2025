@@ -5,9 +5,12 @@ import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.PoseVelocity2d;
 import com.acmerobotics.roadrunner.Vector2d;
+import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+
+import org.firstinspires.ftc.teamcode.LimelightManager;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 import org.firstinspires.ftc.teamcode.Shooter;
 import org.firstinspires.ftc.teamcode.Util.PID;
@@ -22,15 +25,20 @@ public class RedTeleopMecanumDrive extends LinearOpMode {
         PID turnController = new PID(0.022, 0, 0.0000005);
         Shooter shooter = new Shooter(hardwareMap);
         FtcDashboard dashboard = FtcDashboard.getInstance();
+        Limelight3A ll = hardwareMap.get(Limelight3A.class, "limelight");
+        dashboard.startCameraStream(ll, 0);
         telemetry = new MultipleTelemetry(telemetry, dashboard.getTelemetry());
+        LimelightManager limelight = new LimelightManager(hardwareMap, telemetry, true);
+
+        limelight.setPipeline(1);
 
         waitForStart();
 
         if (isStopRequested()) return;
 
         while (opModeIsActive()) {
-            double y = -(gamepad1.right_stick_y * 0.6); // Remember, Y stick value is reversed
-            double x = -(gamepad1.right_stick_x * 0.6);
+            double y = -(gamepad1.right_stick_y * 0.8); // Remember, Y stick value is reversed
+            double x = -(gamepad1.right_stick_x * 0.8);
             //double rx = gamepad1.left_stick_x;
 
             if (gamepad1.left_stick_x > 0.15) {
@@ -79,19 +87,31 @@ public class RedTeleopMecanumDrive extends LinearOpMode {
             if (gamepad2.b) {
                 shooter.setAction(Shooter.ShooterActions.Intake);
             }
-
             if (gamepad2.y) {
                 shooter.setAction(Shooter.ShooterActions.IntakeReverse);
             }
-
             if (gamepad2.right_bumper) {
                 shooter.setAction(Shooter.ShooterActions.ShooterOFF);
             }
-
             if (gamepad2.left_bumper) {
                 shooter.setAction(Shooter.ShooterActions.IntakeOFF);
             }
             shooter.updateAction();
+
+            drive.localizer.update();
+
+            if (gamepad1.left_bumper) {
+
+                if (limelight.angleToGoalRED() > -9) {
+                    rx = limelight.angleToGoalRED();
+                    commandDegrees = Math.toDegrees(drive.localizer.getPose().heading.toDouble());
+                } else {
+                    commandDegrees = -45;
+                    rx = turnController.calculate(Math.toDegrees(drive.localizer.getPose().heading.toDouble()), commandDegrees);
+                }
+            } else {
+                rx = turnController.calculate(Math.toDegrees(drive.localizer.getPose().heading.toDouble()), commandDegrees);
+            }
 
             telemetry.addData("Shooter left velo", shooter.shootLeft.getVelocity());
             telemetry.addData("Shooter right velo", shooter.shootRight.getVelocity());
