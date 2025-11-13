@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -7,9 +8,12 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+@Config
 public class Shooter {
+    private LimelightManager limelight;
     private boolean shootSeqActive = false;
     private final ElapsedTime shootTimer = new ElapsedTime();
+
     public enum ShooterActions {
         Intake,
         SpinUpWheels,
@@ -69,6 +73,21 @@ public class Shooter {
 
     private void SpinUpWheels() {
 
+
+        Double Ty = limelight.getTy();
+
+        double shooterVelocity;
+        if (Ty == null)
+        {
+            shooterVelocity = 1000;
+        } else if (Ty < - 10) {
+            shooterVelocity = 1425;
+        } else {
+            shooterVelocity = 3.5579 * Ty * Ty - 17.578 * Ty + 709.34;
+        }
+
+   //     shootLeft.setVelocity(shooterVelocity);
+   //     shootRight.setVelocity(shooterVelocity);
         shootLeft.setVelocity(1000);
         shootRight.setVelocity(1000);
     }
@@ -86,8 +105,23 @@ public class Shooter {
             shootSeqActive = true;
             shootTimer.reset();
         }
+        Double Ty = limelight.getTy();
+
+        double shooterVelocity;
+
+        if (Ty == null)
+        {
+            shooterVelocity = 1000;
+        } else if (Ty < - 10) {
+            shooterVelocity = 1425;
+        } else {
+            shooterVelocity = 3.5579 * Ty * Ty - 17.578 * Ty + 709.34;
+        }
+        //   shootLeft.setVelocity(shooterVelocity);
+        //   shootRight.setVelocity(shooterVelocity);
         shootLeft.setVelocity(1000);
         shootRight.setVelocity(1000);
+
         conveyor.setPower(1);
 
         double timer = shootTimer.milliseconds();
