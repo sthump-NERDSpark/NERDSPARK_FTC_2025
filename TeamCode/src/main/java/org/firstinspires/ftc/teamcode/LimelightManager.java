@@ -64,7 +64,7 @@ public class LimelightManager {
         return Shooter.greenShot.FIRST;
     }
 
-    public double angleToGoal() {
+    public double angleToGoalBLUE() {
         LLResult result = limelight.getLatestResult();
         pid = new PID(kp, ki, kd);
         if (result.isValid()) {
@@ -72,6 +72,16 @@ public class LimelightManager {
         }
         return -10;
     }
+
+    public double angleToGoalRED() {
+        LLResult result = limelight.getLatestResult();
+        pid = new PID(kp, ki, kd);
+        if (result.isValid()) {
+            return pid.calculate(result.getTx(), 2);
+        }
+        return -10;
+    }
+
 
     public Double getTy() {
         LLResult result = limelight.getLatestResult();

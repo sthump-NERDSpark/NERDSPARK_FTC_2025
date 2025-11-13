@@ -103,8 +103,8 @@ public class BlueTeleopMecanumDrive extends LinearOpMode {
 
             if (gamepad1.left_bumper) {
                 shooter.setAction(Shooter.ShooterActions.AimInPLaceClose);
-                if (limelight.angleToGoal() > -9) {
-                    rx = limelight.angleToGoal();
+                if (limelight.angleToGoalBLUE() > -9) {
+                    rx = limelight.angleToGoalBLUE();
                     commandDegrees = Math.toDegrees(drive.localizer.getPose().heading.toDouble());
                 } else {
                     commandDegrees = -45;
