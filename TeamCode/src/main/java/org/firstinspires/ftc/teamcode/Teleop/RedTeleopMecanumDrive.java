@@ -97,8 +97,8 @@ public class RedTeleopMecanumDrive extends LinearOpMode {
 
             if (gamepad1.left_bumper) {
                 shooter.setAction(Shooter.ShooterActions.AimInPLaceClose);
-                if (limelight.angleToGoal() > -9) {
-                    rx = limelight.angleToGoal();
+                if (limelight.angleToGoalRED() > -9) {
+                    rx = limelight.angleToGoalRED();
                     commandDegrees = Math.toDegrees(drive.localizer.getPose().heading.toDouble());
 
                 } else {
