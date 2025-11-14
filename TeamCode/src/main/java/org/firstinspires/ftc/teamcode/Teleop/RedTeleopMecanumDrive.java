@@ -23,12 +23,15 @@ public class RedTeleopMecanumDrive extends LinearOpMode {
         MecanumDrive drive = new MecanumDrive(hardwareMap, new Pose2d(0,0,0));
         double commandDegrees = 0;
         PID turnController = new PID(0.022, 0, 0.0000005);
-        Shooter shooter = new Shooter(hardwareMap);
         FtcDashboard dashboard = FtcDashboard.getInstance();
         Limelight3A ll = hardwareMap.get(Limelight3A.class, "limelight");
         dashboard.startCameraStream(ll, 0);
         telemetry = new MultipleTelemetry(telemetry, dashboard.getTelemetry());
-        LimelightManager limelight = new LimelightManager(hardwareMap, telemetry, true);
+        LimelightManager limelight = new LimelightManager(hardwareMap, telemetry, false);
+        Shooter shooter = new Shooter(hardwareMap, drive, false, telemetry, limelight);
+        shooter.setAction(Shooter.ShooterActions.NoAction);
+
+        telemetry.clear();
 
         limelight.setPipeline(1);
 

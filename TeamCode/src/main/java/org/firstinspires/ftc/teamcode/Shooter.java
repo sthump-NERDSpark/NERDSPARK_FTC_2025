@@ -8,9 +8,15 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
+
 @Config
 public class Shooter {
-    private LimelightManager limelight;
+    private final LimelightManager limelight;
+
+    private final MecanumDrive Drive;
+    private final boolean alliance_blue;
+    private final Telemetry telemetry;
     private boolean shootSeqActive = false;
     private final ElapsedTime shootTimer = new ElapsedTime();
 
@@ -31,7 +37,13 @@ public class Shooter {
 
     private final Servo servo;
 
-    public Shooter(HardwareMap hardwareMap) {
+    public Shooter(HardwareMap hardwareMap, MecanumDrive drive, boolean alliance, Telemetry telemetry, LimelightManager ll) {
+        this.Drive = drive;
+        this.alliance_blue = alliance;
+        this.telemetry = telemetry;
+        this.limelight = ll;
+
+
         shootLeft = hardwareMap.get(DcMotorEx.class, "shootLeft");
         shootRight = hardwareMap.get(DcMotorEx.class, "shootRight");
         intake = hardwareMap.get(DcMotorEx.class, "intake");

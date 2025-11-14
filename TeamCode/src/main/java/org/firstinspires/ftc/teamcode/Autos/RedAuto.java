@@ -3,10 +3,12 @@ package org.firstinspires.ftc.teamcode.Autos;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.PoseVelocity2d;
 import com.acmerobotics.roadrunner.Vector2d;
+import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.teamcode.LimelightManager;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 import org.firstinspires.ftc.teamcode.Shooter;
 import org.firstinspires.ftc.teamcode.Util.PID;
@@ -18,7 +20,9 @@ public class RedAuto extends LinearOpMode {
         MecanumDrive drive = new MecanumDrive(hardwareMap, new Pose2d(0,0,0));
         double commandDegrees = 0;
         PID turnController = new PID(0.022, 0, 0.0000005);
-        Shooter shooter = new Shooter(hardwareMap);
+        Limelight3A ll = hardwareMap.get(Limelight3A.class, "limelight");
+        LimelightManager limelight = new LimelightManager(hardwareMap, telemetry, true);
+        Shooter shooter = new Shooter(hardwareMap, drive, true, telemetry, limelight);
         shooter.setAction(Shooter.ShooterActions.NoAction);
         double x;
         double y = 0;
