@@ -275,6 +275,16 @@ public class Shooter {
         }
         shooterTopVelocity = 1550;
 
+        if (Math.abs(getPotPosition()) >= 105) {
+            telemetry.addLine("Spinning up wheels");
+            shootTop.setVelocity(shooterTopVelocity);
+            shootBottom.setVelocity(shooterBottomVelocity);
+        }
+        else {
+            shootTop.setVelocity(-900);
+            shootBottom.setVelocity(-900);
+        }
+
         // ResetAndWait until motors are at target velocity
         double timer = shootTimer.milliseconds();
 
