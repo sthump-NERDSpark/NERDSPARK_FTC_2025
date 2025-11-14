@@ -148,7 +148,7 @@ public class Shooter {
         }
         else if (timer >= resetTime) {
             servo.setPosition(0.060);
-            currentAction = ShooterActions.ShooterOFF;
+            currentAction = ShooterActions.Intake;
             shootSeqActive = false;
         }
 
