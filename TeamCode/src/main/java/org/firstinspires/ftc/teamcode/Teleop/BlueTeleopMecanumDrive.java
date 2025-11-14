@@ -11,6 +11,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.LimelightManager;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
+import org.firstinspires.ftc.teamcode.PoseStorage;
 import org.firstinspires.ftc.teamcode.Shooter;
 import org.firstinspires.ftc.teamcode.Util.PID;
 
@@ -21,7 +22,7 @@ public class BlueTeleopMecanumDrive extends LinearOpMode {
     @Override
     public void runOpMode() {
         // Change new Pose2d to match where you start out of auto
-        MecanumDrive drive = new MecanumDrive(hardwareMap, new Pose2d(0,0,0), false);
+        MecanumDrive drive = new MecanumDrive(hardwareMap, PoseStorage.currentPose, false);
         double commandDegrees = 0;
         double rx;
         PID turnController = new PID(0.02, 0, 0.0000001);
@@ -32,6 +33,8 @@ public class BlueTeleopMecanumDrive extends LinearOpMode {
         LimelightManager limelight = new LimelightManager(hardwareMap, telemetry, true);
         Shooter shooter = new Shooter(hardwareMap, drive,true, telemetry, limelight);
         shooter.setAction(Shooter.ShooterActions.NoAction);
+
+        drive.localizer.setPose(PoseStorage.currentPose);
 
         telemetry.clear();
 

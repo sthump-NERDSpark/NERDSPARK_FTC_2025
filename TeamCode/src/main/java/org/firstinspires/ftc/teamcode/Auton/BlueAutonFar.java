@@ -13,6 +13,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 import org.firstinspires.ftc.teamcode.LimelightManager;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
+import org.firstinspires.ftc.teamcode.PoseStorage;
 import org.firstinspires.ftc.teamcode.Shooter;
 @Config
 @Autonomous(name = "BlueAutonFar", group = "Comp")
@@ -30,12 +31,6 @@ public class BlueAutonFar extends LinearOpMode {
     public static double firstpointX = 0;
     public static double firstpointY = 10;
 
-    private static final Pose2d START_POSE = new Pose2d(
-            0.0,  // x in inches
-            0.0,  // y in inches
-            Math.toRadians(90)   // heading in radians (facing +X, front wall)
-    );
-
     private static final double FIRST_FORWARD_DIST = 8.0; // forward to first shooting line
 
     // ---- BLUE-SIDE TARGET POSITIONS (TUNE THESE ON FIELD) ----
@@ -52,14 +47,16 @@ public class BlueAutonFar extends LinearOpMode {
         boolean allianceBlue = true;   // This is BLUE side
 
         // ---------- INIT SUBSYSTEMS ----------
-        MecanumDrive drive = new MecanumDrive(hardwareMap, START_POSE);
+        Pose2d startPose = new Pose2d(0, 0, Math.toRadians(90));
+        MecanumDrive drive = new MecanumDrive(hardwareMap, startPose);
         LimelightManager limelight = new LimelightManager(hardwareMap, telemetry, allianceBlue);
         Shooter shooter = new Shooter(hardwareMap, drive, allianceBlue, telemetry, limelight);
 
         // Optionally set a dedicated pipeline for auto aiming
         // limelight.setPipeline(1);
         limelight.setPipeline(0);
-        drive.localizer.setPose(START_POSE);
+
+        drive.localizer.setPose(startPose);
 
         telemetry.addLine("BlueAutonFar: Initialized. Waiting for start...");
         telemetry.update();
@@ -189,6 +186,8 @@ public class BlueAutonFar extends LinearOpMode {
 
         telemetry.addLine("BlueAutonFar complete.");
         telemetry.update();
+
+        PoseStorage.currentPose = drive.localizer.getPose();
     }
 
     /**

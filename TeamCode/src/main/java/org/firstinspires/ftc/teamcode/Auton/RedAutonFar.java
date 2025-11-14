@@ -22,12 +22,6 @@ public class RedAutonFar extends LinearOpMode {
     //
     // Robot starts flat on the back wall, shooter facing front wall.
 
-    private static final Pose2d START_POSE = new Pose2d(
-            0.0,  // x in inches
-            0.0,  // y in inches
-            0.0   // heading in radians (facing +X, front wall)
-    );
-
     private static final double FIRST_FORWARD_DIST = 8.0; // forward to first shooting line
 
     // ---- MIRRORED VALUES FOR RED ----
@@ -42,16 +36,16 @@ public class RedAutonFar extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         boolean allianceBlue = false;   // This is RED side
-
+        Pose2d startPose = new Pose2d(0, 0, Math.toRadians(-90));
+        MecanumDrive drive = new MecanumDrive(hardwareMap, startPose);
         // ---------- INIT SUBSYSTEMS ----------
-        MecanumDrive drive = new MecanumDrive(hardwareMap, START_POSE);
         LimelightManager limelight = new LimelightManager(hardwareMap, telemetry, allianceBlue);
         Shooter shooter = new Shooter(hardwareMap, drive, allianceBlue, telemetry, limelight);
 
         // Optionally set a dedicated pipeline for auto aiming
         // limelight.setPipeline(1);
 
-        drive.localizer.setPose(START_POSE);
+        drive.localizer.setPose(startPose);
 
         telemetry.addLine("RedAutonFar: Initialized. Waiting for start...");
         telemetry.update();
