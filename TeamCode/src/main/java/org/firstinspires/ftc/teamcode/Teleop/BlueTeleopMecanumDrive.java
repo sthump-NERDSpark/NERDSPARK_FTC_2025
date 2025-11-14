@@ -109,9 +109,11 @@ public class BlueTeleopMecanumDrive extends LinearOpMode {
                 } else {
                     commandDegrees = -45;
                     rx = turnController.calculate(Math.toDegrees(drive.localizer.getPose().heading.toDouble()), commandDegrees);
+                 //   rx = turnController.calculate(Math.toDegrees(drive.lazyImu.get().getRobotYawPitchRollAngles().getYaw()), commandDegrees);
                 }
             } else {
                 rx = turnController.calculate(Math.toDegrees(drive.localizer.getPose().heading.toDouble()), commandDegrees);
+            //    rx = turnController.calculate(Math.toDegrees(drive.lazyImu.get().getRobotYawPitchRollAngles().getYaw()), commandDegrees);
             }
 
             telemetry.addData("Shooter left velo", shooter.shootLeft.getVelocity());
@@ -120,6 +122,8 @@ public class BlueTeleopMecanumDrive extends LinearOpMode {
 
             drive.updatePoseEstimate();
             double botHeading = drive.localizer.getPose().heading.toDouble();
+          //  double botHeading = drive.lazyImu.get().getRobotYawPitchRollAngles().getYaw();
+
 
             // Rotate the movement direction counter to the bot's rotation
             double rotX = x * Math.cos(-botHeading) - y * Math.sin(botHeading);
