@@ -95,7 +95,7 @@ public class Shooter {
         } else if (Ty < - 10) {
             shooterVelocity = 1425;
         } else {
-            shooterVelocity = 3.5579 * Ty * Ty - 17.578 * Ty + 709.34;
+            shooterVelocity = 4.4134 * Ty * Ty - 14.307 * Ty + 614.96;;
         }
 
    //     shootLeft.setVelocity(shooterVelocity);
@@ -127,7 +127,7 @@ public class Shooter {
         } else if (Ty < - 10) {
             shooterVelocity = 1425;
         } else {
-            shooterVelocity = 3.5579 * Ty * Ty - 17.578 * Ty + 709.34;
+            shooterVelocity = 4.4134 * Ty * Ty - 14.307 * Ty + 614.96;
         }
         //   shootLeft.setVelocity(shooterVelocity);
         //   shootRight.setVelocity(shooterVelocity);

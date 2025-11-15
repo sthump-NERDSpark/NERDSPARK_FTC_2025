@@ -43,16 +43,16 @@ public class BlueTeleopMecanumDrive extends LinearOpMode {
             //double rx = gamepad1.left_stick_x;
 
             if (gamepad1.left_stick_x > 0.15) {
-                if (gamepad1.left_bumper) {
-                    commandDegrees -= 5;
-                } else {
-                    commandDegrees -= 0.5;
-                }
-            } else if (gamepad1.left_stick_x < -0.15) {
-                if (gamepad1.left_bumper) {
+                if (gamepad1.right_bumper) {
                     commandDegrees += 5;
                 } else {
                     commandDegrees += 0.5;
+                }
+            } else if (gamepad1.left_stick_x < -0.15) {
+                if (gamepad1.right_bumper) {
+                    commandDegrees -= 5;
+                } else {
+                    commandDegrees -= 0.5;
                 }
             }
 
