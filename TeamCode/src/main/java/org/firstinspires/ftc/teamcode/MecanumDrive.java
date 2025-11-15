@@ -218,8 +218,11 @@ public final class MecanumDrive {
             return twist.velocity().value();
         }
     }
-
     public MecanumDrive(HardwareMap hardwareMap, Pose2d pose) {
+        // Default: initialize IMU (use this from Auton)
+        this(hardwareMap, pose, true);
+    }
+    public MecanumDrive(HardwareMap hardwareMap, Pose2d pose, boolean initImu) {
         LynxFirmware.throwIfModulesAreOutdated(hardwareMap);
 
         for (LynxModule module : hardwareMap.getAll(LynxModule.class)) {
@@ -239,10 +242,10 @@ public final class MecanumDrive {
         rightFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         // TODO: reverse motor directions if needed
-        leftFront.setDirection(DcMotorSimple.Direction.REVERSE);
-        leftBack.setDirection(DcMotorSimple.Direction.REVERSE);
-        rightFront.setDirection(DcMotorSimple.Direction.FORWARD);
-        rightBack.setDirection(DcMotorSimple.Direction.FORWARD);
+        leftFront.setDirection(DcMotorSimple.Direction.FORWARD);
+        leftBack.setDirection(DcMotorSimple.Direction.FORWARD);
+        rightFront.setDirection(DcMotorSimple.Direction.REVERSE);
+        rightBack.setDirection(DcMotorSimple.Direction.REVERSE);
 
         // TODO: make sure your config has an IMU with this name (can be BNO or BHI)
         //   see https://ftc-docs.firstinspires.org/en/latest/hardware_and_software_configuration/configuring/index.html
@@ -251,9 +254,17 @@ public final class MecanumDrive {
 
         voltageSensor = hardwareMap.voltageSensor.iterator().next();
 
-//        localizer = new PinpointLocalizer(hardwareMap, PARAMS.inPerTick, pose);
-        localizer = new DriveLocalizer(pose);
+        localizer = new PinpointLocalizer(hardwareMap, PARAMS.inPerTick, pose);
+        //localizer = new DriveLocalizer(pose);
         FlightRecorder.write("MECANUM_PARAMS", PARAMS);
+
+        IMU imu = hardwareMap.get(IMU.class, "imu");
+        IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
+                PARAMS.logoFacingDirection, PARAMS.usbFacingDirection)
+        );
+        if (initImu) {
+            imu.initialize(parameters);  // <-- ONLY when initImu == true
+        }
     }
 
     public void setDrivePowers(PoseVelocity2d powers) {

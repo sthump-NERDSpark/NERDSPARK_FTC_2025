@@ -1,4 +1,5 @@
 package org.firstinspires.ftc.teamcode.Teleop;
+import org.firstinspires.ftc.teamcode.PoseStorage;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
@@ -20,7 +21,7 @@ public class BlueTeleopMecanumDrive extends LinearOpMode {
     @Override
     public void runOpMode() {
         // Change new Pose2d to match where you start out of auto
-        MecanumDrive drive = new MecanumDrive(hardwareMap, new Pose2d(0,0,0));
+        MecanumDrive drive = new MecanumDrive(hardwareMap, PoseStorage.currentPose, false);
         double commandDegrees = 0;
         PID turnController = new PID(0.022, 0, 0.0000005);
 
@@ -131,7 +132,7 @@ public class BlueTeleopMecanumDrive extends LinearOpMode {
 
             rotX = rotX * 1.1;  // Counteract imperfect strafing
 
-            drive.setDrivePowers(new PoseVelocity2d(new Vector2d(rotY, rotX), -rx));
+            drive.setDrivePowers(new PoseVelocity2d(new Vector2d(rotY, rotX), rx));
         }
     }
 }
