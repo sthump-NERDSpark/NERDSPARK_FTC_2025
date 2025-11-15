@@ -111,7 +111,7 @@ public class RedTeleopMecanumDrive extends LinearOpMode {
                     rx = limelight.angleToGoalRED();
                     commandDegrees = Math.toDegrees(drive.localizer.getPose().heading.toDouble());
                 } else {
-                    commandDegrees = -45;
+                    commandDegrees = 45;
                     rx = turnController.calculate(Math.toDegrees(drive.localizer.getPose().heading.toDouble()), commandDegrees);
                 }
             } else {
