@@ -14,6 +14,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 public class Shooter {
     private final LimelightManager limelight;
 
+    public static double shooterVelocityConfig;
     private final MecanumDrive Drive;
     private final boolean alliance_blue;
     private final Telemetry telemetry;
@@ -87,27 +88,26 @@ public class Shooter {
 
 
         Double Ty = limelight.getTy();
-
+telemetry.addData("Ty", Ty);
         double shooterVelocity;
         if (Ty == null)
         {
             shooterVelocity = 1000;
-        } else if (Ty < - 10) {
-            shooterVelocity = 1425;
         } else {
-            shooterVelocity = 4.4134 * Ty * Ty - 14.307 * Ty + 614.96;;
+            shooterVelocity = .9657 * Ty * Ty + 8.3373 * Ty + 981.26;
         }
-
-   //     shootLeft.setVelocity(shooterVelocity);
-   //     shootRight.setVelocity(shooterVelocity);
-        shootLeft.setVelocity(1000);
-        shootRight.setVelocity(1000);
+   //  shootLeft.setVelocity(shooterVelocityConfig);
+   //     shootRight.setVelocity(shooterVelocityConfig);
+        shootLeft.setVelocity(shooterVelocity);
+        shootRight.setVelocity(shooterVelocity);
+        //shootLeft.setVelocity(1000);
+        //shootRight.setVelocity(1000);
     }
 
     private void Shoot() {
     //    intake.setPower(0);
     //    conveyor.setPower(1);
-        double deltaTime = 500;
+        double deltaTime = 600;
         double firstTime = 100;
         double secondTime = firstTime + deltaTime;
         double thirdTime = secondTime + deltaTime;
@@ -118,21 +118,24 @@ public class Shooter {
             shootTimer.reset();
         }
         Double Ty = limelight.getTy();
+        telemetry.addData("Ty", Ty);
 
         double shooterVelocity;
 
         if (Ty == null)
         {
             shooterVelocity = 1000;
-        } else if (Ty < - 10) {
-            shooterVelocity = 1425;
-        } else {
-            shooterVelocity = 4.4134 * Ty * Ty - 14.307 * Ty + 614.96;
         }
-        //   shootLeft.setVelocity(shooterVelocity);
-        //   shootRight.setVelocity(shooterVelocity);
-        shootLeft.setVelocity(1000);
-        shootRight.setVelocity(1000);
+        else {
+            shooterVelocity = .9657 * Ty * Ty + 8.3373 * Ty + 981.26;
+        }
+
+        //shootLeft.setVelocity(shooterVelocityConfig);
+        //shootRight.setVelocity(shooterVelocityConfig);
+        shootLeft.setVelocity(shooterVelocity);
+        shootRight.setVelocity(shooterVelocity);
+        //shootLeft.setVelocity(1000);
+        //shootRight.setVelocity(1000);
 
         conveyor.setPower(1);
 
