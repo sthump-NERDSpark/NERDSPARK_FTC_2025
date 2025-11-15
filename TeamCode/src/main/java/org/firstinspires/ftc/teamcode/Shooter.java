@@ -189,7 +189,8 @@ public class Shooter {
         } else if (Ty < - 10) {
             shooterBottomVelocity = 1425;
         } else {
-            shooterBottomVelocity = 3.5579 * Ty * Ty - 17.578 * Ty + 709.34;
+            shooterBottomVelocity = 4.4134 * Ty * Ty - 14.307 * Ty + 614.96;
+            //shooterBottomVelocity = 3.5579 * Ty * Ty - 17.578 * Ty + 709.34;
         }
         shooterTopVelocity = 1550;
 
@@ -271,7 +272,7 @@ public class Shooter {
             shooterBottomVelocity = 1000;
         }
         else {
-            shooterBottomVelocity = 3.5579 * Ty * Ty - 17.578 * Ty + 709.34;
+            shooterBottomVelocity = 4.4134 * Ty * Ty - 14.307 * Ty + 614.96;;
         }
         shooterTopVelocity = 1550;
 
