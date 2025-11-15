@@ -94,7 +94,7 @@ telemetry.addData("Ty", Ty);
         {
             shooterVelocity = 1000;
         } else {
-            shooterVelocity = .9657 * Ty * Ty + 8.3373 * Ty + 981.26;
+            shooterVelocity = 4.4541 * Ty * Ty -11.801 * Ty + 576.87;
         }
    //  shootLeft.setVelocity(shooterVelocityConfig);
    //     shootRight.setVelocity(shooterVelocityConfig);
@@ -127,7 +127,7 @@ telemetry.addData("Ty", Ty);
             shooterVelocity = 1000;
         }
         else {
-            shooterVelocity = .9657 * Ty * Ty + 8.3373 * Ty + 981.26;
+            shooterVelocity = 4.4541 * Ty * Ty -11.801 * Ty + 576.87;
         }
 
         //shootLeft.setVelocity(shooterVelocityConfig);
