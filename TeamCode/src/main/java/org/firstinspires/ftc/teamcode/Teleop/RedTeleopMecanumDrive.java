@@ -22,7 +22,7 @@ public class RedTeleopMecanumDrive extends LinearOpMode {
         // Change new Pose2d to match where you start out of auto
         MecanumDrive drive = new MecanumDrive(hardwareMap, PoseStorage.currentPose, false);
         drive.localizer.setPose(PoseStorage.currentPose);
-        double commandDegrees = 0;
+        double commandDegrees = 90;
         double rx;
         PID turnController = new PID(0.02, 0, 0.0000001);
         FtcDashboard dashboard = FtcDashboard.getInstance();

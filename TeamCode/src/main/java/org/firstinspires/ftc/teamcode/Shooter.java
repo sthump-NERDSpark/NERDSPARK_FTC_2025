@@ -26,7 +26,7 @@ public class Shooter {
     public static int velocityTolTimeOut = 3;
     public static double VELOCITY_TOLERANCE = 60;
 
-    public static double intakePos = 8;
+    public static double intakePos = 7;
     public enum ShooterActions {
         Intake,
         IntakeHuman,
@@ -186,11 +186,9 @@ public class Shooter {
         if (Ty == null)
         {
             shooterBottomVelocity = 1000;
-        } else if (Ty < - 10) {
-            shooterBottomVelocity = 1425;
-        } else {
-            shooterBottomVelocity = 4.4134 * Ty * Ty - 14.307 * Ty + 614.96;
-            //shooterBottomVelocity = 3.5579 * Ty * Ty - 17.578 * Ty + 709.34;
+        }
+        else {
+            shooterBottomVelocity = 4.1791 * Ty * Ty - 15.148 * Ty + 620.76;
         }
         shooterTopVelocity = 1550;
 
@@ -272,7 +270,7 @@ public class Shooter {
             shooterBottomVelocity = 1000;
         }
         else {
-            shooterBottomVelocity = 4.4134 * Ty * Ty - 14.307 * Ty + 614.96;;
+            shooterBottomVelocity = 4.1791 * Ty * Ty - 15.148 * Ty + 620.76;
         }
         shooterTopVelocity = 1550;
 

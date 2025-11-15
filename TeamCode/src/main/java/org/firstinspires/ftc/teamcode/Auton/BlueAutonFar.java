@@ -27,12 +27,12 @@ public class BlueAutonFar extends LinearOpMode {
     //
     // Robot starts flat on the back wall, shooter facing front wall.
 
-    public static double firstpointAngle = 110;
+    public static double firstpointAngle = -65;
     public static double firstpointX = 0;
-    public static double firstpointY = 10;
-    public static double secondpointX = 45.0;
-    public static double secondpointY = 1.0;
-    public static double secondpointAngle = 180;
+    public static double firstpointY = -10;
+    public static double secondpointX = 0;
+    public static double secondpointY = -20.0;
+    public static double secondpointAngle = -90;
     public static double thirdpointX = 36.0;
     public static double thirdpointY = 20.0;
     public static double thirdpointAngle = 90;
@@ -47,13 +47,12 @@ public class BlueAutonFar extends LinearOpMode {
         boolean allianceBlue = true;   // This is BLUE side
 
         // ---------- INIT SUBSYSTEMS ----------
-        Pose2d startPose = new Pose2d(0, 0, Math.toRadians(90));
+        Pose2d startPose = new Pose2d(0, 0, Math.toRadians(-90));
         MecanumDrive drive = new MecanumDrive(hardwareMap, startPose);
         LimelightManager limelight = new LimelightManager(hardwareMap, telemetry, allianceBlue);
         Shooter shooter = new Shooter(hardwareMap, drive, allianceBlue, telemetry, limelight);
 
         // Optionally set a dedicated pipeline for auto aiming
-        // limelight.setPipeline(1);
         limelight.setPipeline(0);
 
         drive.localizer.setPose(startPose);
@@ -69,6 +68,7 @@ public class BlueAutonFar extends LinearOpMode {
 
         // -------------------- STEP 1: DRIVE FORWARD 8" TO FIRST SHOT --------------------
         Pose2d pose = drive.localizer.getPose();
+
         Action forwardToFirstShot = drive.actionBuilder(pose)
                 .splineTo(new Vector2d(firstpointX,firstpointY), Math.toRadians(firstpointAngle))
                 .build();
@@ -76,7 +76,7 @@ public class BlueAutonFar extends LinearOpMode {
         Actions.runBlocking(forwardToFirstShot);
 
         // -------------------- STEP 2: FIRST SHOT (AimInPlaceClose + Shoot) --------------------
-        aimAndShootClose(shooter, 1, 5);
+        aimAndShootClose(shooter, 3, 3);
 
 
 
@@ -85,53 +85,53 @@ public class BlueAutonFar extends LinearOpMode {
         shooter.updateAction();
 
         // Drive toward the blue-side corner artifacts (positive Y).
-        pose = drive.localizer.getPose();
+        //pose = drive.localizer.getPose();
         Action toFirstCorner = drive.actionBuilder(pose)
                 .splineTo(new Vector2d(secondpointX, secondpointY), Math.toRadians(secondpointAngle))
                 .build();
 
         Actions.runBlocking(toFirstCorner);
-
-        pose = drive.localizer.getPose();
-        // Explicit "within 3 inches" check before switching to INTAKE
-        if (isWithinDistance(pose, secondpointX, secondpointY, INTAKE_DISTANCE_INCHES)) {
-            shooter.setAction(Shooter.ShooterActions.Intake);
-            shooter.updateAction();
-        }
-
-        // -------------------- STEP 4: RETURN TO ORIGINAL SHOT POSE --------------------
-        shooter.setAction(Shooter.ShooterActions.AimInPLaceClose);
-        shooter.updateAction();
-
-        // Drive back to the same line as first shot (y = 0).
-        pose = drive.localizer.getPose();
-        Action backToFirstShotLane = drive.actionBuilder(pose)
-                .splineTo(new Vector2d(firstpointX, firstpointY), Math.toRadians(firstpointAngle))
-                .build();
-
-        Actions.runBlocking(backToFirstShotLane);
-
-        // Second shot
-        aimAndShootClose(shooter, 1, 10);
-
-        // -------------------- STEP 5: DRIVE TO SECOND ARTIFACT SET (HEADING STAYS SAME) --------------------
-        shooter.setAction(Shooter.ShooterActions.ZeroPower);
-        shooter.updateAction();
-
-        pose = drive.localizer.getPose();
-        Action toSecondArtifacts = drive.actionBuilder(pose)
-                .splineTo(new Vector2d(thirdpointX,thirdpointY),Math.toRadians(thirdpointAngle))
-                .build();
-
-        Actions.runBlocking(toSecondArtifacts);
-        pose = drive.localizer.getPose();
-
-        // Explicit “within 3 inches” check before switching to INTAKE
-        if (isWithinDistance(pose, thirdpointX, thirdpointY, INTAKE_DISTANCE_INCHES)) {
-            shooter.setAction(Shooter.ShooterActions.Intake);
-            shooter.updateAction();
-        }
-
+//
+//        pose = drive.localizer.getPose();
+//        // Explicit "within 3 inches" check before switching to INTAKE
+//        if (isWithinDistance(pose, secondpointX, secondpointY, INTAKE_DISTANCE_INCHES)) {
+//            shooter.setAction(Shooter.ShooterActions.Intake);
+//            shooter.updateAction();
+//        }
+//
+//        // -------------------- STEP 4: RETURN TO ORIGINAL SHOT POSE --------------------
+//        shooter.setAction(Shooter.ShooterActions.AimInPLaceClose);
+//        shooter.updateAction();
+//
+//        // Drive back to the same line as first shot (y = 0).
+//        pose = drive.localizer.getPose();
+//        Action backToFirstShotLane = drive.actionBuilder(pose)
+//                .splineTo(new Vector2d(firstpointX, firstpointY), Math.toRadians(firstpointAngle))
+//                .build();
+//
+//        Actions.runBlocking(backToFirstShotLane);
+//
+//        // Second shot
+//        aimAndShootClose(shooter, 1, 10);
+//
+//        // -------------------- STEP 5: DRIVE TO SECOND ARTIFACT SET (HEADING STAYS SAME) --------------------
+//        shooter.setAction(Shooter.ShooterActions.ZeroPower);
+//        shooter.updateAction();
+//
+//        pose = drive.localizer.getPose();
+//        Action toSecondArtifacts = drive.actionBuilder(pose)
+//                .splineTo(new Vector2d(thirdpointX,thirdpointY),Math.toRadians(thirdpointAngle))
+//                .build();
+//
+//        Actions.runBlocking(toSecondArtifacts);
+//        pose = drive.localizer.getPose();
+//
+//        // Explicit “within 3 inches” check before switching to INTAKE
+//        if (isWithinDistance(pose, thirdpointX, thirdpointY, INTAKE_DISTANCE_INCHES)) {
+//            shooter.setAction(Shooter.ShooterActions.Intake);
+//            shooter.updateAction();
+//        }
+//
 
         // -------------------- STEP 7: FINISH SAFE --------------------
         shooter.setAction(Shooter.ShooterActions.ZeroPower);
