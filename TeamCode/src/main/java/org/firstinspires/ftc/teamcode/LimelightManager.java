@@ -50,7 +50,7 @@ public class LimelightManager {
         LLResult result = limelight.getLatestResult();
         pid = new PID(kp, ki, kd);
         if (result.isValid()) {
-            return pid.calculate(result.getTx(), 2);
+            return pid.calculate(result.getTx(), -10);
         }
         return -10;
     }
