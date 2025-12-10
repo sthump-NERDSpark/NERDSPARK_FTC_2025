@@ -17,7 +17,7 @@ import org.firstinspires.ftc.teamcode.Util.TimerWait;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 @Config
-public class Shooter {
+public class NewShooter {
     private boolean shootSeqActive = false;
     private final ElapsedTime shootTimer = new ElapsedTime();
     public static double shooterTopConfig = 0;
@@ -41,7 +41,7 @@ public class Shooter {
     private ShooterActions currentAction;
     private final MecanumDrive Drive;
     private final boolean alliance_blue;
-    private final LimelightManager limelight;
+    private final NewLimelightManager limelight;
 
     public final DcMotorEx shootTop;
     public final DcMotorEx shootBottom;
@@ -83,7 +83,7 @@ public class Shooter {
     private final TimerWait shootWaiter = new TimerWait();
     private boolean waitStarted = false;
 
-    public Shooter(HardwareMap hardwareMap, MecanumDrive drive, boolean alliance, Telemetry telemetry, LimelightManager ll) {
+    public NewShooter(HardwareMap hardwareMap, MecanumDrive drive, boolean alliance, Telemetry telemetry, NewLimelightManager ll) {
         this.Drive = drive;
         this.alliance_blue = alliance;
         this.telemetry = telemetry;
@@ -165,7 +165,7 @@ public class Shooter {
             shootBottom.setVelocity(shooterBottomConfig);
         }
     }
-      private void AimInPlaceFar() {
+    private void AimInPlaceFar() {
         shooterBottomVelocity = 1400;
         shooterTopVelocity = 1550;
 
@@ -323,7 +323,7 @@ public class Shooter {
      */
     private void getServoOrder() {
         if (shotOrder == null) {
-            greenShot first = limelight.getOrder();
+            Shooter.greenShot first = limelight.getOrder();
             double[] hues = {
                     JavaUtil.colorToHue(sensorLeft.getNormalizedColors().toColor()),
                     JavaUtil.colorToHue(sensorCenter.getNormalizedColors().toColor()),

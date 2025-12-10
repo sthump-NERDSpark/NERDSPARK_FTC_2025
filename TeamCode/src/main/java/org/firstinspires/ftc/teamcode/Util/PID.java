@@ -2,6 +2,8 @@ package org.firstinspires.ftc.teamcode.Util;
 
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
+
 /*
  * Proportional Integral Derivative Controller w/ Low pass filter and anti-windup
  * This is specifically made for auto turning
