@@ -26,7 +26,7 @@ public class Shooter {
     public static int velocityTolTimeOut = 3;
     public static double VELOCITY_TOLERANCE = 60;
 
-    public static double intakePos = 7;
+    public static double intakePos = 3;
     public enum ShooterActions {
         Intake,
         IntakeHuman,
@@ -48,7 +48,7 @@ public class Shooter {
     private final DcMotorEx pivotLeft;
     private final DcMotorEx pivotRight;
     private final AnalogInput potentiometer;
-    private final PID controller = new PID(0.015,0.0002,0);
+    private final PID controller = new PID(0.020,0.0002,0);
 
     private final Servo kickLeft;
     private final Servo kickCenter;
@@ -107,10 +107,10 @@ public class Shooter {
 
         shootTop.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         shootBottom.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        shootTop.setDirection(DcMotorSimple.Direction.REVERSE);
-        shootBottom.setDirection(DcMotorSimple.Direction.REVERSE);
-        shootTop.setVelocityPIDFCoefficients(55,0.6,0.9,15);
-        shootBottom.setVelocityPIDFCoefficients(55,0.6,0.9,20);
+        shootTop.setDirection(DcMotorSimple.Direction.FORWARD);
+        shootBottom.setDirection(DcMotorSimple.Direction.FORWARD);
+        shootTop.setVelocityPIDFCoefficients(175,1.0,0.9,19);
+        shootBottom.setVelocityPIDFCoefficients(75,1.6,0.9,20);
 
         kickLeft = hardwareMap.get(Servo.class, "leftKick");
         kickCenter = hardwareMap.get(Servo.class, "centerKick");
@@ -148,7 +148,8 @@ public class Shooter {
     public double getPotPosition() {
         double currVolts = potentiometer.getVoltage();
         double position = ((270*currVolts+445.5)-Math.sqrt(Math.pow(270*currVolts+445.5, 2) + 4*currVolts*(36450*currVolts-120285)))/(2*currVolts);
-        return position + 0.8921;
+        telemetry.addData("pot", position);
+        return position;
     }
 
     public void getPose() {
@@ -161,8 +162,8 @@ public class Shooter {
         pivotRight.setPower(command);
 
         if (Math.abs(getPotPosition()) >= 95) {
-            shootTop.setVelocity(shooterTopConfig);
-            shootBottom.setVelocity(shooterBottomConfig);
+            shootTop.setVelocity(-shooterTopConfig);
+            shootBottom.setVelocity(-shooterBottomConfig);
         }
     }
       private void AimInPlaceFar() {
@@ -175,8 +176,8 @@ public class Shooter {
 
         if (Math.abs(getPotPosition()) >= 100) {
             telemetry.addLine("Spinning up wheels");
-            shootTop.setVelocity(shooterTopVelocity);
-            shootBottom.setVelocity(shooterBottomVelocity);
+            shootTop.setVelocity(-shooterTopVelocity);
+            shootBottom.setVelocity(-shooterBottomVelocity);
         }
     }
     private void AimInPlaceClose() {
@@ -188,15 +189,15 @@ public class Shooter {
             shooterBottomVelocity = 1000;
         }
         else {
-            shooterBottomVelocity = 4.1791 * Ty * Ty - 15.148 * Ty + 620.76;
+            shooterBottomVelocity = 2.9727 * Ty * Ty - 24.274 * Ty + 681.94;
         }
-        shooterTopVelocity = 1550;
+        shooterTopVelocity = 1570;
 
-        double command = controller.calculatePosition(115, getPotPosition());
+        double command = controller.calculatePosition(90, getPotPosition());
         pivotLeft.setPower(command);
         pivotRight.setPower(command);
 
-        if (Math.abs(getPotPosition()) >= 105) {
+        if (Math.abs(getPotPosition()) >= 75) {
             telemetry.addLine("Spinning up wheels");
             shootTop.setVelocity(shooterTopVelocity);
             shootBottom.setVelocity(shooterBottomVelocity);
@@ -247,7 +248,7 @@ public class Shooter {
     private void Shoot() {
         telemetry.addLine("Started shooting");
 
-        double deltaTime = 500;
+        double deltaTime = 700;
         double firstTime = 100;
         double secondTime = firstTime + deltaTime;
         double thirdTime = secondTime + deltaTime;
@@ -270,11 +271,11 @@ public class Shooter {
             shooterBottomVelocity = 1000;
         }
         else {
-            shooterBottomVelocity = 4.1791 * Ty * Ty - 15.148 * Ty + 620.76;
+            shooterBottomVelocity = 2.9727 * Ty * Ty - 24.274 * Ty + 681.94;
         }
-        shooterTopVelocity = 1550;
+        shooterTopVelocity = 1570;
 
-        if (Math.abs(getPotPosition()) >= 105) {
+        if (Math.abs(getPotPosition()) >= 75) {
             telemetry.addLine("Spinning up wheels");
             shootTop.setVelocity(shooterTopVelocity);
             shootBottom.setVelocity(shooterBottomVelocity);
@@ -290,6 +291,9 @@ public class Shooter {
         if (timer >= firstTime && timer < secondTime) { //shooterTopVelocity, shooterBottomVelocity
             // Move the current servo
             servoCounter = 0;
+        //    kickCenter.setPosition(0.85);
+        //    kickLeft.setPosition(0.85);
+        //    kickRight.setPosition(0.85);
             Servo servo = sequence[servoCounter];
             servo.setPosition(0.85);
 
@@ -378,24 +382,24 @@ public class Shooter {
      */
 
     private void Intake() {
-        double command = controller.calculatePosition(intakePos, getPotPosition());
+        double command = controller.calculatePosition(3, getPotPosition());
         pivotLeft.setPower(command);
         pivotRight.setPower(command);
         kickCenter.setPosition(0.65);
         kickLeft.setPosition(0.65);
         kickRight.setPosition(0.65);
-        shootTop.setVelocity(1300);
+        shootTop.setVelocity(-1000);
         shootBottom.setVelocity(0);
     }
     private void IntakeHuman() {
-        double command = controller.calculatePosition(110, getPotPosition());
+        double command = controller.calculatePosition(85, getPotPosition());
         pivotLeft.setPower(command);
         pivotRight.setPower(command);
         kickCenter.setPosition(0.65);
         kickLeft.setPosition(0.65);
         kickRight.setPosition(0.65);
-        shootTop.setVelocity(900);
-        shootBottom.setVelocity(900);
+        shootTop.setVelocity(-900);
+        shootBottom.setVelocity(-900);
     }
 
     private void ZeroPower() {
@@ -412,7 +416,7 @@ public class Shooter {
     private void Park() {
         shootTop.setVelocity(0);
         shootBottom.setVelocity(0);
-        double command = controller.calculatePosition(110, getPotPosition());
+        double command = controller.calculatePosition(85, getPotPosition());
         pivotLeft.setPower(command);
         pivotRight.setPower(command);
 
