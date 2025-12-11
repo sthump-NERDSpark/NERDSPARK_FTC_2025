@@ -16,7 +16,7 @@ public class PositionTesting extends LinearOpMode {
         while (opModeIsActive()) {
             double currVolts = potentiometer.getVoltage();
             double position = ((270*currVolts+445.5)-Math.sqrt(Math.pow(270*currVolts+445.5, 2) + 4*currVolts*(36450*currVolts-120285)))/(2*currVolts);
-            telemetry.addData("Shooter Position (Deg): ", position);
+            telemetry.addData("Shooter Position (Deg): ", position + 0.8921);
             telemetry.addData("Current Volts: ", currVolts);
             telemetry.update();
         }

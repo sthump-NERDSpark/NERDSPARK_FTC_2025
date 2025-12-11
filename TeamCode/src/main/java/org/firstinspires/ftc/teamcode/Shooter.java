@@ -107,8 +107,8 @@ public class Shooter {
 
         shootTop.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         shootBottom.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        shootTop.setDirection(DcMotorSimple.Direction.FORWARD);
-        shootBottom.setDirection(DcMotorSimple.Direction.FORWARD);
+        shootTop.setDirection(DcMotorSimple.Direction.REVERSE);
+        shootBottom.setDirection(DcMotorSimple.Direction.REVERSE);
         shootTop.setVelocityPIDFCoefficients(55,0.6,0.9,15);
         shootBottom.setVelocityPIDFCoefficients(55,0.6,0.9,20);
 
@@ -148,7 +148,7 @@ public class Shooter {
     public double getPotPosition() {
         double currVolts = potentiometer.getVoltage();
         double position = ((270*currVolts+445.5)-Math.sqrt(Math.pow(270*currVolts+445.5, 2) + 4*currVolts*(36450*currVolts-120285)))/(2*currVolts);
-        return position - 15.06;
+        return position + 0.8921;
     }
 
     public void getPose() {
@@ -384,7 +384,7 @@ public class Shooter {
         kickCenter.setPosition(0.65);
         kickLeft.setPosition(0.65);
         kickRight.setPosition(0.65);
-        shootTop.setVelocity(-1300);
+        shootTop.setVelocity(1300);
         shootBottom.setVelocity(0);
     }
     private void IntakeHuman() {
@@ -394,8 +394,8 @@ public class Shooter {
         kickCenter.setPosition(0.65);
         kickLeft.setPosition(0.65);
         kickRight.setPosition(0.65);
-        shootTop.setVelocity(-900);
-        shootBottom.setVelocity(-900);
+        shootTop.setVelocity(900);
+        shootBottom.setVelocity(900);
     }
 
     private void ZeroPower() {
