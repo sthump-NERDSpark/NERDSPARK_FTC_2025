@@ -189,7 +189,7 @@ public class Shooter {
             shooterBottomVelocity = 1000;
         }
         else {
-            shooterBottomVelocity = 2.9727 * Ty * Ty - 24.274 * Ty + 681.94;
+            shooterBottomVelocity = 3.4413 * Ty * Ty - 23.054 * Ty + 671.21; //TODO: Change formula
         }
         shooterTopVelocity = 1570;
 
@@ -271,7 +271,7 @@ public class Shooter {
             shooterBottomVelocity = 1000;
         }
         else {
-            shooterBottomVelocity = 2.9727 * Ty * Ty - 24.274 * Ty + 681.94;
+            shooterBottomVelocity = 3.4413 * Ty * Ty - 23.054 * Ty + 671.21; //TODO: Change Formula
         }
         shooterTopVelocity = 1570;
 

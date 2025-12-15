@@ -26,7 +26,7 @@ public class RedAutonFar extends LinearOpMode {
     //
     // Robot starts flat on the back wall, shooter facing front wall.
 
-    public static double firstpointAngle = 65;
+    public static double firstpointAngle = 62;
     public static double firstpointX = 0;
     public static double firstpointY = 10;
     public static double secondpointX = 0;
@@ -75,7 +75,7 @@ public class RedAutonFar extends LinearOpMode {
         pose = drive.localizer.getPose();
 
         // -------------------- STEP 2: FIRST SHOT (AimInPlaceClose + Shoot) --------------------
-        aimAndShootClose(shooter, 3, 3);
+        aimAndShootClose(shooter, 3, 5);
 
 
 

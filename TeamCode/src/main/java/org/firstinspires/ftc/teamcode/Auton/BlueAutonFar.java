@@ -27,7 +27,7 @@ public class BlueAutonFar extends LinearOpMode {
     //
     // Robot starts flat on the back wall, shooter facing front wall.
 
-    public static double firstpointAngle = -65;
+    public static double firstpointAngle = -68;
     public static double firstpointX = 0;
     public static double firstpointY = -10;
     public static double secondpointX = 0;
@@ -76,7 +76,7 @@ public class BlueAutonFar extends LinearOpMode {
         Actions.runBlocking(forwardToFirstShot);
 
         // -------------------- STEP 2: FIRST SHOT (AimInPlaceClose + Shoot) --------------------
-        aimAndShootClose(shooter, 3, 3);
+        aimAndShootClose(shooter, 3, 5);
 
 
 
@@ -159,7 +159,6 @@ public class BlueAutonFar extends LinearOpMode {
             shooter.updateAction();
             telemetry.addData("aim timer", timer.seconds());
             telemetry.update();
-
         }
 
         shooter.setAction(Shooter.ShooterActions.Shoot);
